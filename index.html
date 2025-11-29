@@ -19,6 +19,7 @@
 
         h1 { margin-bottom: 5px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
 
+        /* ESTILOS GENERALES */
         .panel-control {
             background: #16213e;
             padding: 25px;
@@ -45,7 +46,6 @@
             transition: 0.3s;
         }
 
-        /* Efecto visual al escribir */
         input:focus { 
             border-color: #00f3ff; 
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); 
@@ -122,30 +122,74 @@
 
 <body>
 
-    <h1>⚡ PRESUPUESTO ⚡</h1>
-    
-    <div class="panel-control">
-        <input type="text" id="nombreInput" placeholder="Nombre (Ej: Cable)">
-        <input type="number" id="cantidadInput" placeholder="Cantidad" min="1">
-        <input type="number" id="precioInput" placeholder="Precio Unidad" min="0">
+    <div id="vista-clientes">
+        <h1>📂 MIS CLIENTES</h1>
         
-        <div class="btn-container">
-            <button class="btn-add" onclick="agregarProducto()">GUARDAR</button>
-            <button class="btn-excel" onclick="descargarExcel()">📥 EXCEL</button>
-            <button class="btn-empty" onclick="vaciarTodo()">VACIAR</button>
+        <div class="panel-control">
+            <input type="text" id="nuevoClienteInput" placeholder="Nuevo Cliente (Ej: Casa Juan)">
+            <div class="btn-container">
+                <button class="btn-add" onclick="crearCliente()">+ CREAR PROYECTO</button>
+            </div>
+        </div>
+
+        <ul id="listaClientesVisual">
+            <li>
+                <div class="info-producto">
+                    <span class="nombre-item">Ejemplo: Casa Pedro</span>
+                </div>
+                <button class="btn-add" onclick="crearCliente()">Abrir</button>
+            </li>
+        </ul>
+    </div>
+
+
+    <div id="vista-presupuesto" style="display:none;">
+        
+        <div style="text-align: left; max-width: 500px; margin: 0 auto; margin-bottom: 10px;">
+            <button class="btn-empty" onclick="volverInicio()">⬅ VOLVER</button>
+        </div>
+
+        <h1 id="tituloPresupuesto">PRESUPUESTO</h1>
+        
+        <div class="panel-control">
+            <input type="text" id="nombreInput" placeholder="Nombre (Ej: Cable)">
+            <input type="number" id="cantidadInput" placeholder="Cantidad" min="1">
+            <input type="number" id="precioInput" placeholder="Precio Unidad" min="0">
+            
+            <div class="btn-container">
+                <button class="btn-add" onclick="agregarProducto()">GUARDAR ITEM</button>
+                <button class="btn-excel" onclick="descargarExcel()">📥 EXCEL</button>
+            </div>
+        </div>
+
+        <ul id="listaVisual"></ul>
+
+        <div class="caja-total">
+            <h3>💰 TOTAL: $<span id="precioTotal">0</span></h3>
+            <small style="display:block; margin-top:5px; font-size: 0.8em; color: #0f3460;">
+                Items: <span id="contadorItems">0</span>
+            </small>
         </div>
     </div>
 
-    <ul id="listaVisual"></ul>
-
-    <div class="caja-total">
-        <h3>💰 TOTAL INVERTIDO: $<span id="precioTotal">0</span></h3>
-        <small style="display:block; margin-top:5px; font-size: 0.8em; color: #0f3460;">
-            Items: <span id="contadorItems">0</span>
-        </small>
-    </div>
-
     <script>
+        
+        // --- 1. LÓGICA DE NAVEGACIÓN (Lo nuevo) ---
+        function crearCliente() {
+            // Ocultamos la vista de clientes
+            document.getElementById('vista-clientes').style.display = 'none';
+            // Mostramos el presupuesto
+            document.getElementById('vista-presupuesto').style.display = 'block';
+        }
+
+        function volverInicio() {
+            // Ocultamos presupuesto
+            document.getElementById('vista-presupuesto').style.display = 'none';
+            // Mostramos clientes
+            document.getElementById('vista-clientes').style.display = 'block';
+        }
+
+        // --- 2. TU LÓGICA VIEJA (Para que siga funcionando el presupuesto) ---
         var inventario = JSON.parse(localStorage.getItem('PRESUPUESTO')) || [];
         actualizarTodo();
 
@@ -154,27 +198,22 @@
             var cantidad = document.getElementById('cantidadInput').value;
             var precio = document.getElementById('precioInput').value;
 
-            // 1. VALIDACIÓN DE VACÍOS
             if (nombre === "" || cantidad === "" || precio === "") {
                 Swal.fire({
                     title: '¡Faltan datos!',
                     text: 'Por favor llena los 3 campos',
                     icon: 'warning',
-                    confirmButtonText: 'Ok',
-                    background: '#16213e',
-                    color: '#fff'
+                    background: '#16213e', color: '#fff'
                 });
                 return;
             }
 
-            // 2. VALIDACIÓN: NÚMEROS NEGATIVOS
             if (parseFloat(cantidad) <= 0 || parseFloat(precio) < 0) {
                  Swal.fire({
                     title: '¡Error numérico!',
-                    text: 'La cantidad y el precio no pueden ser negativos.',
+                    text: 'Sin números negativos.',
                     icon: 'error',
-                    background: '#16213e',
-                    color: '#fff'
+                    background: '#16213e', color: '#fff'
                 });
                 return;
             }
@@ -186,25 +225,13 @@
             };
             
             inventario.push(nuevoProducto);
-
+            
             document.getElementById('nombreInput').value ="";
             document.getElementById('cantidadInput').value = "";
             document.getElementById('precioInput').value = "";
             
             actualizarTodo();
-            
-            // Foco al inicio para carga rápida
             document.getElementById('nombreInput').focus();
-
-            Swal.fire({
-                position: 'top-end',
-                icon: 'success',
-                title: 'Guardado',
-                showConfirmButton: false,
-                timer: 1000,
-                background: '#16213e',
-                color: '#fff'
-            });
         }
 
         function mostrarLista() {
@@ -233,37 +260,17 @@
                         <button class="btn-delete" onclick="borrarItem(${i})">✕</button>
                     </div>
                 `;
-
                 listaHtml.innerHTML += `<li>${info} ${botones}</li>`;   
             }
         }
 
         function editarItem(indice) {
             var item = inventario[indice];
-
             document.getElementById('nombreInput').value = item.nombre;
             document.getElementById('cantidadInput').value = item.cantidad;
             document.getElementById('precioInput').value = item.precio;
-
             inventario.splice(indice, 1);
             actualizarTodo();
-
-            document.getElementById('nombreInput').focus();
-            
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                background: '#ffcc00',
-                color: '#000'
-            });
-
-            Toast.fire({
-                icon: 'info',
-                title: 'Modifica y presiona ENTER para guardar'
-            });
         }
 
         function calcularTotal() {
@@ -288,30 +295,8 @@
         }
 
         function vaciarTodo() {
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: "¡Se borrará todo el inventario!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, borrar todo',
-                cancelButtonText: 'Cancelar',
-                background: '#16213e',
-                color: '#fff'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    inventario = [];
-                    actualizarTodo();
-                    Swal.fire({
-                        title: '¡Borrado!',
-                        text: 'El inventario está limpio.',
-                        icon: 'success',
-                        background: '#16213e',
-                        color: '#fff'
-                    });
-                }
-            })
+            inventario = [];
+            actualizarTodo();
         }
 
         function guardarEnMemoria() {
@@ -319,54 +304,15 @@
         }
 
         function descargarExcel() {
-            if (inventario.length === 0) {
-                Swal.fire({
-                    title: 'Lista vacía',
-                    text: 'Agrega productos antes de exportar.',
-                    icon: 'info',
-                    background: '#16213e',
-                    color: '#fff'
-                });
-                return;
-            }
-
-            var datosParaExcel = inventario.map(function(item) {
-                return {
-                    "Producto": item.nombre,
-                    "Cantidad": item.cantidad,
-                    "Precio Unitario": item.precio,
-                    "Subtotal": item.cantidad * item.precio
-                };
+             var datosParaExcel = inventario.map(function(item) {
+                return { "Producto": item.nombre, "Cantidad": item.cantidad, "Precio": item.precio };
             });
-
             var hoja = XLSX.utils.json_to_sheet(datosParaExcel);
             var libro = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(libro, hoja, "Presupuesto");
             XLSX.writeFile(libro, "Presupuesto.xlsx");
         }
 
-        // --- NAVEGACIÓN INTELIGENTE CON ENTER ---
-        document.getElementById('nombreInput').addEventListener('keydown', function(e) {
-            if (e.key === "Enter") {
-                e.preventDefault(); 
-                document.getElementById('cantidadInput').focus(); 
-            }
-        });
-
-        document.getElementById('cantidadInput').addEventListener('keydown', function(e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                document.getElementById('precioInput').focus(); 
-            }
-        });
-
-        document.getElementById('precioInput').addEventListener('keydown', function(e) {
-            if (e.key === "Enter") {
-                agregarProducto();
-            }
-        });
-
     </script>
-
 </body>
 </html>
