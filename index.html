@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODEPOP</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            background: #1a1a2e;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 { margin-bottom: 5px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
+
+        .panel-control {
+            background: #16213e;
+            padding: 25px;
+            border-radius: 20px;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #30344c;
+            background-color: #0f3460;
+            color: white;
+            width: 90%;
+            margin-bottom: 10px;
+            outline: none;
+            font-size: 16px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        /* Efecto visual al escribir */
+        input:focus { 
+            border-color: #00f3ff; 
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); 
+            transform: scale(1.02);
+        }
+
+        .btn-container { display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;}
+
+        button {
+            cursor: pointer; border: none; border-radius: 8px; font-weight: bold;
+            padding: 12px 20px; transition: 0.2s;
+        }
+
+        .btn-add { background: #00f3ff; color: #000; box-shadow: 0 0 10px rgba(0, 243, 255, 0.4); }
+        .btn-empty { background: #ff0055; color: white; }
+        .btn-excel { background: #1D6F42; color: white; box-shadow: 0 0 10px rgba(29, 111, 66, 0.4); }
+
+        button:active { transform: scale(0.95); }
+
+        ul { list-style-type: none; padding: 0; max-width: 500px; margin: 0 auto; }
+
+        li {
+            background-color: #16213e;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #00f3ff;
+            display: flex; justify-content: space-between; align-items: center;
+            animation: aparecer 0.3s ease-out; text-align: left;
+        }
+
+        .info-producto { display: flex; flex-direction: column; }
+        .nombre-item { font-weight: bold; font-size: 1.1em; color: #fff; }
+        .detalle-item { font-size: 0.9em; color: #aaa; }
+        .cantidad-badge { 
+            background: #00f3ff; color: black; padding: 2px 8px; 
+            border-radius: 4px; font-weight: bold; font-size: 0.8em; margin-right: 5px;
+        }
+
+        .acciones { display: flex; gap: 5px; }
+
+        .btn-delete {
+            background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d;
+            border-radius: 5px; width: 35px; height: 35px; padding: 0; font-size: 16px;
+        }
+        .btn-delete:hover { background: #ff4d4d; color: white; }
+
+        .btn-edit {
+            background: transparent; border: 1px solid #ffcc00; color: #ffcc00;
+            border-radius: 5px; width: 35px; height: 35px; padding: 0; font-size: 16px;
+        }
+        .btn-edit:hover { background: #ffcc00; color: black; }
+
+        .caja-total {
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: inline-block;
+            box-shadow: 0 0 20px rgba(150, 201, 61, 0.4);
+            animation: aparecer 0.5s ease-out;
+        }
+
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+</head>
+
+<body>
+
+    <h1>⚡ PRESUPUESTO ⚡</h1>
+    
+    <div class="panel-control">
+        <input type="text" id="nombreInput" placeholder="Nombre (Ej: Cable)">
+        <input type="number" id="cantidadInput" placeholder="Cantidad" min="1">
+        <input type="number" id="precioInput" placeholder="Precio Unidad" min="0">
+        
+        <div class="btn-container">
+            <button class="btn-add" onclick="agregarProducto()">GUARDAR</button>
+            <button class="btn-excel" onclick="descargarExcel()">📥 EXCEL</button>
+            <button class="btn-empty" onclick="vaciarTodo()">VACIAR</button>
+        </div>
+    </div>
+
+    <ul id="listaVisual"></ul>
+
+    <div class="caja-total">
+        <h3>💰 TOTAL INVERTIDO: $<span id="precioTotal">0</span></h3>
+        <small style="display:block; margin-top:5px; font-size: 0.8em; color: #0f3460;">
+            Items: <span id="contadorItems">0</span>
+        </small>
+    </div>
+
+    <script>
+        var inventario = JSON.parse(localStorage.getItem('PRESUPUESTO')) || [];
+        actualizarTodo();
+
+        function agregarProducto() {
+            var nombre = document.getElementById('nombreInput').value;
+            var cantidad = document.getElementById('cantidadInput').value;
+            var precio = document.getElementById('precioInput').value;
+
+            // 1. VALIDACIÓN DE VACÍOS
+            if (nombre === "" || cantidad === "" || precio === "") {
+                Swal.fire({
+                    title: '¡Faltan datos!',
+                    text: 'Por favor llena los 3 campos',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok',
+                    background: '#16213e',
+                    color: '#fff'
+                });
+                return;
+            }
+
+            // 2. VALIDACIÓN: NÚMEROS NEGATIVOS
+            if (parseFloat(cantidad) <= 0 || parseFloat(precio) < 0) {
+                 Swal.fire({
+                    title: '¡Error numérico!',
+                    text: 'La cantidad y el precio no pueden ser negativos.',
+                    icon: 'error',
+                    background: '#16213e',
+                    color: '#fff'
+                });
+                return;
+            }
+
+            var nuevoProducto = {
+                nombre: nombre,
+                cantidad: parseInt(cantidad),
+                precio: parseFloat(precio)
+            };
+            
+            inventario.push(nuevoProducto);
+
+            document.getElementById('nombreInput').value ="";
+            document.getElementById('cantidadInput').value = "";
+            document.getElementById('precioInput').value = "";
+            
+            actualizarTodo();
+            
+            // Foco al inicio para carga rápida
+            document.getElementById('nombreInput').focus();
+
+            Swal.fire({
+                position: 'top-end',
+                icon: 'success',
+                title: 'Guardado',
+                showConfirmButton: false,
+                timer: 1000,
+                background: '#16213e',
+                color: '#fff'
+            });
+        }
+
+        function mostrarLista() {
+            var listaHtml = document.getElementById('listaVisual');
+            listaHtml.innerHTML = "";
+
+            for (var i = 0; i < inventario.length; i++) {
+                var producto = inventario[i];
+                var subtotal = producto.cantidad * producto.precio;
+
+                var info = `
+                    <div class="info-producto">
+                        <span class="nombre-item">
+                            <span class="cantidad-badge">${producto.cantidad}x</span> 
+                            ${producto.nombre}
+                        </span>
+                        <span class="detalle-item">
+                            $${producto.precio.toLocaleString()} c/u | Subtotal: $${subtotal.toLocaleString()}
+                        </span>
+                    </div>
+                `;
+               
+                var botones = `
+                    <div class="acciones">
+                        <button class="btn-edit" onclick="editarItem(${i})">✎</button>
+                        <button class="btn-delete" onclick="borrarItem(${i})">✕</button>
+                    </div>
+                `;
+
+                listaHtml.innerHTML += `<li>${info} ${botones}</li>`;   
+            }
+        }
+
+        function editarItem(indice) {
+            var item = inventario[indice];
+
+            document.getElementById('nombreInput').value = item.nombre;
+            document.getElementById('cantidadInput').value = item.cantidad;
+            document.getElementById('precioInput').value = item.precio;
+
+            inventario.splice(indice, 1);
+            actualizarTodo();
+
+            document.getElementById('nombreInput').focus();
+            
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                background: '#ffcc00',
+                color: '#000'
+            });
+
+            Toast.fire({
+                icon: 'info',
+                title: 'Modifica y presiona ENTER para guardar'
+            });
+        }
+
+        function calcularTotal() {
+            var totalAcumulado = 0;
+            for (var i = 0; i < inventario.length; i++) {
+                var item = inventario[i];
+                totalAcumulado = totalAcumulado + (item.cantidad * item.precio);
+            }
+            document.getElementById('precioTotal').innerText = totalAcumulado.toLocaleString();
+            document.getElementById('contadorItems').innerText = inventario.length;
+        }
+
+        function actualizarTodo() {
+            guardarEnMemoria();
+            mostrarLista();
+            calcularTotal();
+        }
+
+        function borrarItem(indice) {
+            inventario.splice(indice, 1);
+            actualizarTodo();
+        }
+
+        function vaciarTodo() {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡Se borrará todo el inventario!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, borrar todo',
+                cancelButtonText: 'Cancelar',
+                background: '#16213e',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    inventario = [];
+                    actualizarTodo();
+                    Swal.fire({
+                        title: '¡Borrado!',
+                        text: 'El inventario está limpio.',
+                        icon: 'success',
+                        background: '#16213e',
+                        color: '#fff'
+                    });
+                }
+            })
+        }
+
+        function guardarEnMemoria() {
+            localStorage.setItem('PRESUPUESTO', JSON.stringify(inventario));
+        }
+
+        function descargarExcel() {
+            if (inventario.length === 0) {
+                Swal.fire({
+                    title: 'Lista vacía',
+                    text: 'Agrega productos antes de exportar.',
+                    icon: 'info',
+                    background: '#16213e',
+                    color: '#fff'
+                });
+                return;
+            }
+
+            var datosParaExcel = inventario.map(function(item) {
+                return {
+                    "Producto": item.nombre,
+                    "Cantidad": item.cantidad,
+                    "Precio Unitario": item.precio,
+                    "Subtotal": item.cantidad * item.precio
+                };
+            });
+
+            var hoja = XLSX.utils.json_to_sheet(datosParaExcel);
+            var libro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(libro, hoja, "Presupuesto");
+            XLSX.writeFile(libro, "Presupuesto.xlsx");
+        }
+
+        // --- NAVEGACIÓN INTELIGENTE CON ENTER ---
+        document.getElementById('nombreInput').addEventListener('keydown', function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault(); 
+                document.getElementById('cantidadInput').focus(); 
+            }
+        });
+
+        document.getElementById('cantidadInput').addEventListener('keydown', function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById('precioInput').focus(); 
+            }
+        });
+
+        document.getElementById('precioInput').addEventListener('keydown', function(e) {
+            if (e.key === "Enter") {
+                agregarProducto();
+            }
+        });
+
+    </script>
+
+</body>
+</html>
