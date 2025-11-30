@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CODEPOP</title>
+    <title>CODEPOP - Gestión</title>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
@@ -19,7 +19,6 @@
 
         h1 { margin-bottom: 5px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
 
-        /* ESTILOS GENERALES */
         .panel-control {
             background: #16213e;
             padding: 25px;
@@ -62,6 +61,14 @@
         .btn-add { background: #00f3ff; color: #000; box-shadow: 0 0 10px rgba(0, 243, 255, 0.4); }
         .btn-empty { background: #ff0055; color: white; }
         .btn-excel { background: #1D6F42; color: white; box-shadow: 0 0 10px rgba(29, 111, 66, 0.4); }
+        .btn-open { background: #6c5ce7; color: white; margin-left: 10px; }
+        
+        /* BOTÓN WHATSAPP */
+        .btn-whatsapp { 
+            background: #25D366; 
+            color: white; 
+            box-shadow: 0 0 10px rgba(37, 211, 102, 0.4); 
+        }
 
         button:active { transform: scale(0.95); }
 
@@ -80,6 +87,7 @@
         .info-producto { display: flex; flex-direction: column; }
         .nombre-item { font-weight: bold; font-size: 1.1em; color: #fff; }
         .detalle-item { font-size: 0.9em; color: #aaa; }
+        
         .cantidad-badge { 
             background: #00f3ff; color: black; padding: 2px 8px; 
             border-radius: 4px; font-weight: bold; font-size: 0.8em; margin-right: 5px;
@@ -123,42 +131,36 @@
 <body>
 
     <div id="vista-clientes">
-        <h1>📂 MIS CLIENTES</h1>
+        <h1>📂 MIS PROYECTOS</h1>
         
         <div class="panel-control">
-            <input type="text" id="nuevoClienteInput" placeholder="Nuevo Cliente (Ej: Casa Juan)">
+            <input type="text" id="nuevoClienteInput" placeholder="Nombre Cliente (Ej: Juan)">
             <div class="btn-container">
-                <button class="btn-add" onclick="crearCliente()">+ CREAR PROYECTO</button>
+                <button class="btn-add" onclick="crearNuevoCliente()">+ CREAR NUEVO</button>
             </div>
         </div>
 
-        <ul id="listaClientesVisual">
-            <li>
-                <div class="info-producto">
-                    <span class="nombre-item">Ejemplo: Casa Pedro</span>
-                </div>
-                <button class="btn-add" onclick="crearCliente()">Abrir</button>
-            </li>
-        </ul>
+        <ul id="listaClientesVisual"></ul>
     </div>
 
 
     <div id="vista-presupuesto" style="display:none;">
         
         <div style="text-align: left; max-width: 500px; margin: 0 auto; margin-bottom: 10px;">
-            <button class="btn-empty" onclick="volverInicio()">⬅ VOLVER</button>
+            <button class="btn-empty" onclick="volverInicio()">&#11013; VOLVER</button>
         </div>
 
         <h1 id="tituloPresupuesto">PRESUPUESTO</h1>
         
         <div class="panel-control">
-            <input type="text" id="nombreInput" placeholder="Nombre (Ej: Cable)">
+            <input type="text" id="nombreInput" placeholder="Material (Ej: Cable)">
             <input type="number" id="cantidadInput" placeholder="Cantidad" min="1">
             <input type="number" id="precioInput" placeholder="Precio Unidad" min="0">
             
             <div class="btn-container">
                 <button class="btn-add" onclick="agregarProducto()">GUARDAR ITEM</button>
                 <button class="btn-excel" onclick="descargarExcel()">📥 EXCEL</button>
+                <button class="btn-whatsapp" onclick="compartirWhatsapp()">📱 WHATSAPP</button>
             </div>
         </div>
 
@@ -173,74 +175,140 @@
     </div>
 
     <script>
-        
-        // --- 1. LÓGICA DE NAVEGACIÓN (Lo nuevo) ---
-        function crearCliente() {
-            // Ocultamos la vista de clientes
+        var baseDatos = JSON.parse(localStorage.getItem('CODEPOP_DB')) || [];
+        var clienteActualIndex = null;
+
+        mostrarClientes();
+
+        // --- GESTIÓN DE CLIENTES ---
+
+        function crearNuevoCliente() {
+            var nombre = document.getElementById('nuevoClienteInput').value;
+            
+            if (nombre === "") {
+                Swal.fire({ title: 'Falta nombre', icon: 'warning', background: '#16213e', color: '#fff' });
+                return;
+            }
+
+            var nuevoCliente = {
+                id: Date.now(), 
+                nombre: nombre,
+                items: [] 
+            };
+
+            baseDatos.push(nuevoCliente);
+            guardarDB();
+            
+            document.getElementById('nuevoClienteInput').value = "";
+            mostrarClientes(); 
+        }
+
+        function mostrarClientes() {
+            var listaHTML = document.getElementById('listaClientesVisual');
+            listaHTML.innerHTML = "";
+
+            if(baseDatos.length === 0) {
+                listaHTML.innerHTML = "<p style='color:#aaa'>No tienes proyectos aún.</p>";
+                return;
+            }
+
+            baseDatos.forEach(function(cliente, index) {
+                var totalItems = cliente.items.length;
+                
+                var html = `
+                    <li>
+                        <div class="info-producto">
+                            <span class="nombre-item">${cliente.nombre}</span>
+                            <span class="detalle-item">${totalItems} items guardados</span>
+                        </div>
+                        <div>
+                             <button class="btn-delete" onclick="borrarCliente(${index})">✕</button>
+                             <button class="btn-open" onclick="abrirPresupuesto(${index})">ABRIR ➜</button>
+                        </div>
+                    </li>
+                `;
+                listaHTML.innerHTML += html;
+            });
+        }
+
+        function borrarCliente(index) {
+            Swal.fire({
+                title: '¿Borrar proyecto?',
+                text: "Se perderán todos los materiales de este cliente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                background: '#16213e', color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    baseDatos.splice(index, 1);
+                    guardarDB();
+                    mostrarClientes();
+                }
+            })
+        }
+
+        function abrirPresupuesto(index) {
+            clienteActualIndex = index;
+            var cliente = baseDatos[index];
+
+            document.getElementById('tituloPresupuesto').innerText = "OBRA: " + cliente.nombre.toUpperCase();
             document.getElementById('vista-clientes').style.display = 'none';
-            // Mostramos el presupuesto
             document.getElementById('vista-presupuesto').style.display = 'block';
+
+            actualizarVistaPresupuesto();
         }
 
         function volverInicio() {
-            // Ocultamos presupuesto
+            clienteActualIndex = null; 
             document.getElementById('vista-presupuesto').style.display = 'none';
-            // Mostramos clientes
             document.getElementById('vista-clientes').style.display = 'block';
+            mostrarClientes(); 
         }
 
-        // --- 2. TU LÓGICA VIEJA (Para que siga funcionando el presupuesto) ---
-        var inventario = JSON.parse(localStorage.getItem('PRESUPUESTO')) || [];
-        actualizarTodo();
+
+        // --- FUNCIONES DEL PRESUPUESTO ---
 
         function agregarProducto() {
             var nombre = document.getElementById('nombreInput').value;
             var cantidad = document.getElementById('cantidadInput').value;
             var precio = document.getElementById('precioInput').value;
 
-            if (nombre === "" || cantidad === "" || precio === "") {
-                Swal.fire({
-                    title: '¡Faltan datos!',
-                    text: 'Por favor llena los 3 campos',
-                    icon: 'warning',
-                    background: '#16213e', color: '#fff'
-                });
-                return;
-            }
+            if (nombre === "" || cantidad === "" || precio === "") return;
 
-            if (parseFloat(cantidad) <= 0 || parseFloat(precio) < 0) {
-                 Swal.fire({
-                    title: '¡Error numérico!',
-                    text: 'Sin números negativos.',
-                    icon: 'error',
-                    background: '#16213e', color: '#fff'
-                });
-                return;
-            }
-
-            var nuevoProducto = {
+            var nuevoItem = {
                 nombre: nombre,
                 cantidad: parseInt(cantidad),
                 precio: parseFloat(precio)
             };
-            
-            inventario.push(nuevoProducto);
+
+            baseDatos[clienteActualIndex].items.push(nuevoItem);
             
             document.getElementById('nombreInput').value ="";
             document.getElementById('cantidadInput').value = "";
             document.getElementById('precioInput').value = "";
             
-            actualizarTodo();
             document.getElementById('nombreInput').focus();
+            
+            guardarDB();
+            actualizarVistaPresupuesto();
+            
+            Swal.fire({
+                position: 'top-end', icon: 'success', title: 'Guardado', 
+                showConfirmButton: false, timer: 800, background: '#16213e', color: '#fff'
+            });
         }
 
-        function mostrarLista() {
+        function actualizarVistaPresupuesto() {
             var listaHtml = document.getElementById('listaVisual');
             listaHtml.innerHTML = "";
+            
+            var itemsCliente = baseDatos[clienteActualIndex].items;
+            var totalAcumulado = 0;
 
-            for (var i = 0; i < inventario.length; i++) {
-                var producto = inventario[i];
+            itemsCliente.forEach(function(producto, i) {
                 var subtotal = producto.cantidad * producto.precio;
+                totalAcumulado += subtotal;
 
                 var info = `
                     <div class="info-producto">
@@ -253,7 +321,6 @@
                         </span>
                     </div>
                 `;
-               
                 var botones = `
                     <div class="acciones">
                         <button class="btn-edit" onclick="editarItem(${i})">✎</button>
@@ -261,57 +328,81 @@
                     </div>
                 `;
                 listaHtml.innerHTML += `<li>${info} ${botones}</li>`;   
-            }
+            });
+
+            document.getElementById('precioTotal').innerText = totalAcumulado.toLocaleString();
+            document.getElementById('contadorItems').innerText = itemsCliente.length;
         }
 
-        function editarItem(indice) {
-            var item = inventario[indice];
+        function borrarItem(i) {
+            baseDatos[clienteActualIndex].items.splice(i, 1);
+            guardarDB();
+            actualizarVistaPresupuesto();
+        }
+
+        function editarItem(i) {
+            var item = baseDatos[clienteActualIndex].items[i];
             document.getElementById('nombreInput').value = item.nombre;
             document.getElementById('cantidadInput').value = item.cantidad;
             document.getElementById('precioInput').value = item.precio;
-            inventario.splice(indice, 1);
-            actualizarTodo();
+            
+            borrarItem(i); 
         }
 
-        function calcularTotal() {
-            var totalAcumulado = 0;
-            for (var i = 0; i < inventario.length; i++) {
-                var item = inventario[i];
-                totalAcumulado = totalAcumulado + (item.cantidad * item.precio);
-            }
-            document.getElementById('precioTotal').innerText = totalAcumulado.toLocaleString();
-            document.getElementById('contadorItems').innerText = inventario.length;
-        }
-
-        function actualizarTodo() {
-            guardarEnMemoria();
-            mostrarLista();
-            calcularTotal();
-        }
-
-        function borrarItem(indice) {
-            inventario.splice(indice, 1);
-            actualizarTodo();
-        }
-
-        function vaciarTodo() {
-            inventario = [];
-            actualizarTodo();
-        }
-
-        function guardarEnMemoria() {
-            localStorage.setItem('PRESUPUESTO', JSON.stringify(inventario));
+        function guardarDB() {
+            localStorage.setItem('CODEPOP_DB', JSON.stringify(baseDatos));
         }
 
         function descargarExcel() {
-             var datosParaExcel = inventario.map(function(item) {
-                return { "Producto": item.nombre, "Cantidad": item.cantidad, "Precio": item.precio };
-            });
-            var hoja = XLSX.utils.json_to_sheet(datosParaExcel);
+            var cliente = baseDatos[clienteActualIndex];
+            if (cliente.items.length === 0) {
+                Swal.fire({ icon: 'info', title: 'Vacío', text: 'Agrega items primero', background: '#16213e', color: '#fff' });
+                return;
+            }
+
+            var datos = cliente.items.map(item => ({
+                "Producto": item.nombre, "Cantidad": item.cantidad, 
+                "Precio Unitario": item.precio, "Subtotal": item.cantidad * item.precio
+            }));
+
+            var hoja = XLSX.utils.json_to_sheet(datos);
             var libro = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(libro, hoja, "Presupuesto");
-            XLSX.writeFile(libro, "Presupuesto.xlsx");
+            XLSX.writeFile(libro, "Presupuesto_" + cliente.nombre + ".xlsx");
         }
+
+        // --- WHATSAPP SIMPLE ---
+        function compartirWhatsapp() {
+            var cliente = baseDatos[clienteActualIndex];
+            var items = cliente.items;
+            
+            if (items.length === 0) {
+                Swal.fire({ icon: 'info', title: 'Vacío', text: 'Agrega materiales para compartir', background: '#16213e', color: '#fff' });
+                return;
+            }
+
+            // 1. Calculamos Total ($)
+            var total = 0;
+            items.forEach(i => total += (i.cantidad * i.precio));
+
+            // 2. Armamos el mensaje simple que pediste
+            var texto = `Hola ${cliente.nombre}, el total de materiales para la obra es $${total.toLocaleString()}. Son ${items.length} items. Avísame si avanzamos.`;
+
+            // 3. Enviamos
+            var textoCodificado = encodeURIComponent(texto);
+            window.open(`https://wa.me/?text=${textoCodificado}`, '_blank');
+        }
+        
+        // TECLAS RÁPIDAS
+         document.getElementById('nombreInput').addEventListener('keydown', function(e) {
+            if (e.key === "Enter") { e.preventDefault(); document.getElementById('cantidadInput').focus(); }
+        });
+        document.getElementById('cantidadInput').addEventListener('keydown', function(e) {
+            if (e.key === "Enter") { e.preventDefault(); document.getElementById('precioInput').focus(); }
+        });
+        document.getElementById('precioInput').addEventListener('keydown', function(e) {
+            if (e.key === "Enter") agregarProducto();
+        });
 
     </script>
 </body>
