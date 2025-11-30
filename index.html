@@ -153,8 +153,8 @@
             
             <select id="rubroInput">
                 <option value="⚡ Electricidad">⚡ Electricidad</option>
-                <option value="🚗 Automotriz">🚗 Automotriz</option>
                 <option value="🔧 Mecánica">🔧 Mecánica</option>
+                <option value="📋 Gestor Automotor">📋 Gestor Automotor</option>
                 <option value="🔥 Gasista">🔥 Gasista</option>
                 <option value="🛠️ Varios">🛠️ Varios</option>
             </select>
@@ -219,27 +219,37 @@
                 { nombre: "Tecla Punto y Toma", precio: 3500 },
                 { nombre: "Cinta Aisladora", precio: 1500 },
                 { nombre: "Aceite 10w40", precio: 12000 },
-                { nombre: "Filtro de Aire", precio: 8000 }
+                { nombre: "Filtro de Aire", precio: 8000 },
+                { nombre: "Formularios Tipo 08", precio: 5000 }
             ],
+            // LISTA DE MANO DE OBRA ACTUALIZADA
             "mano_obra": {
                 "⚡ Electricidad": [
                     { nombre: "Boca de luz (Instalación)", precio: 15000 },
                     { nombre: "Cambio de Térmica", precio: 25000 },
                     { nombre: "Urgencia 24hs", precio: 40000 }
                 ],
-                "🚗 Automotriz": [
-                    { nombre: "Escaneo Computarizado", precio: 20000 },
-                    { nombre: "Cambio de Aceite y Filtros", precio: 18000 }
-                ],
                 "🔧 Mecánica": [
-                    { nombre: "Mano de Obra General", precio: 15000 }
+                    { nombre: "Electricidad Automotriz", precio: 25000 },
+                    { nombre: "Escaneo Computarizado", precio: 20000 },
+                    { nombre: "Mecánica Integral", precio: 30000 },
+                    { nombre: "Cambio de Aceite", precio: 10000 }
+                ],
+                "📋 Gestor Automotor": [
+                    { nombre: "Transferencia Automotor", precio: 50000 },
+                    { nombre: "Cambio de Dominio", precio: 40000 },
+                    { nombre: "Cédula Azul/Verde", precio: 15000 },
+                    { nombre: "Informe de Dominio", precio: 10000 }
                 ],
                 "🔥 Gasista": [
                     { nombre: "Instalación Estufa", precio: 35000 },
-                    { nombre: "Búsqueda de Fuga", precio: 40000 }
+                    { nombre: "Búsqueda de Fuga", precio: 40000 },
+                    { nombre: "Matriculación", precio: 60000 }
                 ],
                 "🛠️ Varios": [
-                    { nombre: "Visita Técnica", precio: 10000 }
+                    { nombre: "Trabajos de Oficina", precio: 10000 },
+                    { nombre: "Finanzas / Contador", precio: 20000 },
+                    { nombre: "Trámites Generales", precio: 8000 }
                 ]
             }
         };
@@ -357,14 +367,14 @@
                 
                 // OCULTAR CANTIDAD
                 cantidadInput.style.display = 'none';
-                cantidadInput.value = 1; // Le damos valor 1 para que la matemática no falle
+                cantidadInput.value = 1; 
             } else {
                 nombreInput.placeholder = "Material (Ej: Cable)";
                 precioInput.placeholder = "Precio Unitario";
                 
                 // MOSTRAR CANTIDAD
                 cantidadInput.style.display = 'inline-block';
-                cantidadInput.value = ""; // Limpiamos para que escribas
+                cantidadInput.value = ""; 
             }
             // Recargamos la lista de autocompletado
             actualizarSugerencias();
@@ -383,6 +393,7 @@
             if (tipo === 'material') {
                 opciones = PRECIOS_MERCADO.material;
             } else {
+                // Buscamos las opciones del rubro o vamos a Varios
                 opciones = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"];
             }
 
@@ -409,6 +420,8 @@
                 listaItems = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"];
             }
 
+            // IMPORTANTE: Permitimos escribir nombres nuevos.
+            // Solo si coincide exactamente con la lista, ponemos el precio.
             let encontrado = listaItems.find(item => item.nombre === nombreIngresado);
 
             if (encontrado) {
@@ -437,7 +450,6 @@
             baseDatos[clienteActualIndex].items.push(nuevoItem);
             
             document.getElementById('nombreInput').value ="";
-            // Si es material, limpiamos cantidad. Si es mano obra, se mantiene en 1 oculto.
             if(tipo === 'material') document.getElementById('cantidadInput').value = "";
             
             document.getElementById('precioInput').value = "";
@@ -475,7 +487,6 @@
                 let claseExtra = (producto.tipo === 'mano_obra') ? 'mano-obra' : '';
                 let icono = (producto.tipo === 'mano_obra') ? '👷' : '🔩';
                 
-                // Si es Mano de Obra, NO mostramos la cantidad (ej: "1x")
                 let cantidadTexto = (producto.tipo === 'mano_obra') 
                     ? '' 
                     : `<span class="cantidad-badge">${producto.cantidad}x</span>`;
@@ -533,11 +544,9 @@
             document.getElementById('cantidadInput').value = item.cantidad;
             document.getElementById('precioInput').value = item.precio;
             
-            // Cambiamos el select al tipo correcto
             let selectTipo = document.getElementById('tipoItemInput');
             selectTipo.value = item.tipo || 'material';
             
-            // Disparamos el evento para que oculte/muestre la cantidad según corresponda
             cambiarPlaceholders();
 
             borrarItem(i); 
@@ -599,10 +608,7 @@
         
         mostrarClientes();
 
-        // Detectar cambios para actualizar placeholders y sugerencias
         document.getElementById('tipoItemInput').addEventListener('change', cambiarPlaceholders);
-        
-        // Detectar escritura para autocompletar precio
         document.getElementById('nombreInput').addEventListener('input', autocompletarPrecio);
 
         // Teclas Rápidas
