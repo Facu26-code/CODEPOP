@@ -85,6 +85,22 @@
         }
 
         .info-producto { display: flex; flex-direction: column; }
+        .rubro-badge {
+            background: #ff9f43;
+            color: black;
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 4pc;
+            margin-left: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        li.mano-obra { border-left: 5px solid #ff9f43;}
+        .titulo-seccion {
+            text-align: left; max-width: 500px; margin: 20px auto 5px auto;
+            font-size: 0.9em; color: #aaa; text-transform: uppercase;
+            letter-spacing: 1px; border-bottom: #30344c;
+        }
         .nombre-item { font-weight: bold; font-size: 1.1em; color: #fff; }
         .detalle-item { font-size: 0.9em; color: #aaa; }
         
@@ -135,6 +151,14 @@
         
         <div class="panel-control">
             <input type="text" id="nuevoClienteInput" placeholder="Nombre Cliente (Ej: Juan)">
+            <select id="rubroInput">
+                <option value="⚡Electricista">⚡Electricista</option>
+                <option value="🚗GestorAutomotor">🚗GestorAutomotor</option>
+                <option value="🔧Mecanico">🔧Mecanico</option>
+                <option value="🔥Gasista">🔥Gasista</option>
+                <option value="🛠Varios">🛠Varios</option>
+            </select>
+
             <div class="btn-container">
                 <button class="btn-add" onclick="crearNuevoCliente()">+ CREAR NUEVO</button>
             </div>
@@ -151,8 +175,13 @@
         </div>
 
         <h1 id="tituloPresupuesto">PRESUPUESTO</h1>
+        <h4 id="subtituloRubro" style="color:#00f3ff; margin-top: -10px;"></h4>
         
         <div class="panel-control">
+            <select id="tipoItemInput" style="background-color: #2c3e50; border-color: #00f3ff;">
+                <option value="material">🔩 MATERIAL</option>
+                <option value="mano-obra">👷‍♂️ MANO DE OBRA</option>
+            </select>
             <input type="text" id="nombreInput" placeholder="Material (Ej: Cable)">
             <input type="number" id="cantidadInput" placeholder="Cantidad" min="1">
             <input type="number" id="precioInput" placeholder="Precio Unidad" min="0">
@@ -164,9 +193,13 @@
             </div>
         </div>
 
-        <ul id="listaVisual"></ul>
+        <div id="contenedorListas"></div>
 
         <div class="caja-total">
+            <div class="subtotal" style="border-bottom:1px solid #555; margin-bottom:10px; padding-bottom: 10px;">
+                🔩 Mateles: $<span id="totalMateriales">0</span> <br>
+                👷‍♂️ Mano de Obra: $<span id="totalManoObra">0</span>
+            </div>
             <h3>💰 TOTAL: $<span id="precioTotal">0</span></h3>
             <small style="display:block; margin-top:5px; font-size: 0.8em; color: #0f3460;">
                 Items: <span id="contadorItems">0</span>
@@ -182,8 +215,9 @@
 
         // --- GESTIÓN DE CLIENTES ---
 
-        function crearNuevoCliente() {
+        const crearNuevoCliente = () => {
             let nombre = document.getElementById('nuevoClienteInput').value;
+            let rubro = document.getElementById('rubroInput').value;
             
             if (nombre === "") {
                 Swal.fire({ title: 'Falta nombre', icon: 'warning', background: '#16213e', color: '#fff' });
@@ -193,6 +227,7 @@
             let nuevoCliente = {
                 id: Date.now(), 
                 nombre: nombre,
+                rubro: rubro,
                 items: [] 
             };
 
@@ -203,7 +238,7 @@
             mostrarClientes(); 
         }
 
-        function mostrarClientes() {
+        const mostrarClientes = () => {
             let listaHTML = document.getElementById('listaClientesVisual');
             listaHTML.innerHTML = "";
 
@@ -214,11 +249,14 @@
 
             baseDatos.forEach(function(cliente, index) {
                 let totalItems = cliente.items.length;
+                let rubroMostrar = cliente.rubro || '🛠 Varios';
                 
                 let html = `
                     <li>
                         <div class="info-producto">
-                            <span class="nombre-item">${cliente.nombre}</span>
+                            <span class="nombre-item">
+                                ${cliente.nombre}
+                                <spam class="rubro-badge">${rubroMostrar}</span> </span>
                             <span class="detalle-item">${totalItems} items guardados</span>
                         </div>
                         <div>
@@ -231,7 +269,7 @@
             });
         }
 
-        function borrarCliente(index) {
+        const borrarCliente = (index) => {
             Swal.fire({
                 title: '¿Borrar proyecto?',
                 text: "Se perderán todos los materiales de este cliente.",
@@ -248,18 +286,19 @@
             })
         }
 
-        function abrirPresupuesto(index) {
+        const abrirPresupuesto = (index) => {
             clienteActualIndex = index;
             let cliente = baseDatos[index];
 
             document.getElementById('tituloPresupuesto').innerText = "OBRA: " + cliente.nombre.toUpperCase();
             document.getElementById('vista-clientes').style.display = 'none';
             document.getElementById('vista-presupuesto').style.display = 'block';
+            document.getElementById('subtituloRubro').innerText = cliente.rubro || "Rubro: Varios";
 
             actualizarVistaPresupuesto();
         }
 
-        function volverInicio() {
+       const volverInicio = () => {
             clienteActualIndex = null; 
             document.getElementById('vista-presupuesto').style.display = 'none';
             document.getElementById('vista-clientes').style.display = 'block';
@@ -269,7 +308,8 @@
 
         // --- FUNCIONES DEL PRESUPUESTO ---
 
-        function agregarProducto() {
+        const agregarProducto = () => {
+            let tipo = document.getElementById('tipoItemInput').value;
             let nombre = document.getElementById('nombreInput').value;
             let cantidad = document.getElementById('cantidadInput').value;
             let precio = document.getElementById('precioInput').value;
@@ -277,6 +317,7 @@
             if (nombre === "" || cantidad === "" || precio === "") return;
 
             let nuevoItem = {
+                tipo: tipo,
                 nombre: nombre,
                 cantidad: parseInt(cantidad),
                 precio: parseFloat(precio)
@@ -299,48 +340,78 @@
             });
         }
 
-        function actualizarVistaPresupuesto() {
-            let listaHtml = document.getElementById('listaVisual');
-            listaHtml.innerHTML = "";
-            
-            let itemsCliente = baseDatos[clienteActualIndex].items;
-            let totalAcumulado = 0;
+        const actualizarVistaPresupuesto = () => {
+    let contenedor = document.getElementById('contenedorListas');
+    contenedor.innerHTML = "";
+    
+    let itemsCliente = baseDatos[clienteActualIndex].items;
+    
+    let sumaMateriales = 0;
+    let sumaManoObra = 0;
+    let htmlMateriales = "";
+    let htmlManoObra = "";
 
-            itemsCliente.forEach(function(producto, i) {
-                let subtotal = producto.cantidad * producto.precio;
-                totalAcumulado += subtotal;
-
-                let info = `
-                    <div class="info-producto">
-                        <span class="nombre-item">
-                            <span class="cantidad-badge">${producto.cantidad}x</span> 
-                            ${producto.nombre}
-                        </span>
-                        <span class="detalle-item">
-                            $${producto.precio.toLocaleString()} c/u | Subtotal: $${subtotal.toLocaleString()}
-                        </span>
-                    </div>
-                `;
-                let botones = `
-                    <div class="acciones">
-                        <button class="btn-edit" onclick="editarItem(${i})">✎</button>
-                        <button class="btn-delete" onclick="borrarItem(${i})">✕</button>
-                    </div>
-                `;
-                listaHtml.innerHTML += `<li>${info} ${botones}</li>`;   
-            });
-
-            document.getElementById('precioTotal').innerText = totalAcumulado.toLocaleString();
-            document.getElementById('contadorItems').innerText = itemsCliente.length;
+    itemsCliente.forEach((producto, i) => {
+        let subtotal = producto.cantidad * producto.precio;
+        
+        // Calculamos totales separados
+        if (producto.tipo === 'mano_obra') {
+            sumaManoObra += subtotal;
+        } else {
+            sumaMateriales += subtotal;
         }
 
-        function borrarItem(i) {
+        // Estilos diferentes según tipo
+        let claseExtra = (producto.tipo === 'mano_obra') ? 'mano-obra' : '';
+        let icono = (producto.tipo === 'mano_obra') ? '👷' : '🔩';
+
+        let htmlItem = `
+            <li class="${claseExtra}">
+                <div class="info-producto">
+                    <span class="nombre-item">
+                        <span class="cantidad-badge">${producto.cantidad}x</span> 
+                        ${icono} ${producto.nombre}
+                    </span>
+                    <span class="detalle-item">
+                        $${producto.precio.toLocaleString()} | Sub: $${subtotal.toLocaleString()}
+                    </span>
+                </div>
+                <div class="acciones">
+                    <button class="btn-edit" onclick="editarItem(${i})">✎</button>
+                    <button class="btn-delete" onclick="borrarItem(${i})">✕</button>
+                </div>
+            </li>
+        `;
+
+        // Separamos en dos variables de texto
+        if (producto.tipo === 'mano_obra') {
+            htmlManoObra += htmlItem;
+        } else {
+            htmlMateriales += htmlItem;
+        }
+    });
+
+    // Inyectamos el HTML ordenado
+    if (htmlMateriales !== "") {
+        contenedor.innerHTML += `<div class="titulo-seccion">🔩 MATERIALES</div><ul>${htmlMateriales}</ul>`;
+    }
+    if (htmlManoObra !== "") {
+        contenedor.innerHTML += `<div class="titulo-seccion">👷 MANO DE OBRA</div><ul>${htmlManoObra}</ul>`;
+    }
+
+    // Actualizamos los números en pantalla
+    document.getElementById('totalMateriales').innerText = sumaMateriales.toLocaleString();
+    document.getElementById('totalManoObra').innerText = sumaManoObra.toLocaleString();
+    document.getElementById('precioTotal').innerText = (sumaMateriales + sumaManoObra).toLocaleString();
+}
+
+        const borrarItem = (i) => {
             baseDatos[clienteActualIndex].items.splice(i, 1);
             guardarDB();
             actualizarVistaPresupuesto();
         }
 
-        function editarItem(i) {
+        const editarItem = (i) => {
             let item = baseDatos[clienteActualIndex].items[i];
             document.getElementById('nombreInput').value = item.nombre;
             document.getElementById('cantidadInput').value = item.cantidad;
@@ -349,11 +420,11 @@
             borrarItem(i); 
         }
 
-        function guardarDB() {
+        const guardarDB = () => {
             localStorage.setItem('CODEPOP_DB', JSON.stringify(baseDatos));
         }
 
-        function descargarExcel() {
+        const descargarExcel = () => {
             let cliente = baseDatos[clienteActualIndex];
             if (cliente.items.length === 0) {
                 Swal.fire({ icon: 'info', title: 'Vacío', text: 'Agrega items primero', background: '#16213e', color: '#fff' });
@@ -372,7 +443,7 @@
         }
 
         // --- WHATSAPP SIMPLE ---
-        function compartirWhatsapp() {
+        const compartirWhatsapp = () => {
             let cliente = baseDatos[clienteActualIndex];
             let items = cliente.items;
             
