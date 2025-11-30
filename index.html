@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CODEPOP - Gestión</title>
+    <title>CODEPOP - Gestión Pro</title>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
@@ -18,6 +18,7 @@
         }
 
         h1 { margin-bottom: 5px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
+        h3 { margin: 10px 0; color: #00f3ff; }
 
         .panel-control {
             background: #16213e;
@@ -31,7 +32,7 @@
             max-width: 500px;
         }
 
-        input {
+        input, select {
             padding: 12px;
             border-radius: 8px;
             border: 1px solid #30344c;
@@ -45,7 +46,7 @@
             transition: 0.3s;
         }
 
-        input:focus { 
+        input:focus, select:focus { 
             border-color: #00f3ff; 
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); 
             transform: scale(1.02);
@@ -62,13 +63,7 @@
         .btn-empty { background: #ff0055; color: white; }
         .btn-excel { background: #1D6F42; color: white; box-shadow: 0 0 10px rgba(29, 111, 66, 0.4); }
         .btn-open { background: #6c5ce7; color: white; margin-left: 10px; }
-        
-        /* BOTÓN WHATSAPP */
-        .btn-whatsapp { 
-            background: #25D366; 
-            color: white; 
-            box-shadow: 0 0 10px rgba(37, 211, 102, 0.4); 
-        }
+        .btn-whatsapp { background: #25D366; color: white; box-shadow: 0 0 10px rgba(37, 211, 102, 0.4); }
 
         button:active { transform: scale(0.95); }
 
@@ -82,27 +77,19 @@
             border-left: 5px solid #00f3ff;
             display: flex; justify-content: space-between; align-items: center;
             animation: aparecer 0.3s ease-out; text-align: left;
+            margin-bottom: 10px;
         }
+        
+        li.mano-obra { border-left: 5px solid #ff9f43; }
 
         .info-producto { display: flex; flex-direction: column; }
-        .rubro-badge {
-            background: #ff9f43;
-            color: black;
-            font-size: 0.7em;
-            padding: 2px 6px;
-            border-radius: 4pc;
-            margin-left: 8px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-        li.mano-obra { border-left: 5px solid #ff9f43;}
-        .titulo-seccion {
-            text-align: left; max-width: 500px; margin: 20px auto 5px auto;
-            font-size: 0.9em; color: #aaa; text-transform: uppercase;
-            letter-spacing: 1px; border-bottom: #30344c;
-        }
         .nombre-item { font-weight: bold; font-size: 1.1em; color: #fff; }
         .detalle-item { font-size: 0.9em; color: #aaa; }
+        
+        .rubro-badge {
+            background: #ff9f43; color: black; font-size: 0.7em; padding: 2px 6px;
+            border-radius: 4px; margin-left: 8px; text-transform: uppercase; font-weight: bold;
+        }
         
         .cantidad-badge { 
             background: #00f3ff; color: black; padding: 2px 8px; 
@@ -131,11 +118,23 @@
             display: inline-block;
             box-shadow: 0 0 20px rgba(150, 201, 61, 0.4);
             animation: aparecer 0.5s ease-out;
+            width: 90%; max-width: 500px;
+        }
+        
+        .subtotales {
+            font-size: 0.9em; color: #ddd; margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px;
         }
 
         @keyframes aparecer {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .titulo-seccion {
+            text-align: left; max-width: 500px; margin: 20px auto 5px auto;
+            font-size: 0.9em; color: #aaa; text-transform: uppercase;
+            letter-spacing: 1px; border-bottom: 1px solid #30344c;
         }
     </style>
 
@@ -151,12 +150,13 @@
         
         <div class="panel-control">
             <input type="text" id="nuevoClienteInput" placeholder="Nombre Cliente (Ej: Juan)">
+            
             <select id="rubroInput">
-                <option value="⚡Electricista">⚡Electricista</option>
-                <option value="🚗GestorAutomotor">🚗GestorAutomotor</option>
-                <option value="🔧Mecanico">🔧Mecanico</option>
-                <option value="🔥Gasista">🔥Gasista</option>
-                <option value="🛠Varios">🛠Varios</option>
+                <option value="⚡ Electricidad">⚡ Electricidad</option>
+                <option value="🚗 Automotriz">🚗 Automotriz</option>
+                <option value="🔧 Mecánica">🔧 Mecánica</option>
+                <option value="🔥 Gasista">🔥 Gasista</option>
+                <option value="🛠️ Varios">🛠️ Varios</option>
             </select>
 
             <div class="btn-container">
@@ -175,19 +175,22 @@
         </div>
 
         <h1 id="tituloPresupuesto">PRESUPUESTO</h1>
-        <h4 id="subtituloRubro" style="color:#00f3ff; margin-top: -10px;"></h4>
+        <h4 id="subtituloRubro" style="color:#00f3ff; margin-top:-10px;"></h4>
         
         <div class="panel-control">
             <select id="tipoItemInput" style="background-color: #2c3e50; border-color: #00f3ff;">
                 <option value="material">🔩 MATERIAL</option>
-                <option value="mano-obra">👷‍♂️ MANO DE OBRA</option>
+                <option value="mano_obra">👷 MANO DE OBRA</option>
             </select>
-            <input type="text" id="nombreInput" placeholder="Material (Ej: Cable)">
+
+            <input list="listaPrecios" type="text" id="nombreInput" placeholder="Descripción">
+            <datalist id="listaPrecios"></datalist>
+
             <input type="number" id="cantidadInput" placeholder="Cantidad" min="1">
             <input type="number" id="precioInput" placeholder="Precio Unidad" min="0">
             
             <div class="btn-container">
-                <button class="btn-add" onclick="agregarProducto()">GUARDAR ITEM</button>
+                <button class="btn-add" onclick="agregarProducto()">GUARDAR</button>
                 <button class="btn-excel" onclick="descargarExcel()">📥 EXCEL</button>
                 <button class="btn-whatsapp" onclick="compartirWhatsapp()">📱 WHATSAPP</button>
             </div>
@@ -196,20 +199,52 @@
         <div id="contenedorListas"></div>
 
         <div class="caja-total">
-            <div class="subtotal" style="border-bottom:1px solid #555; margin-bottom:10px; padding-bottom: 10px;">
-                🔩 Mateles: $<span id="totalMateriales">0</span> <br>
-                👷‍♂️ Mano de Obra: $<span id="totalManoObra">0</span>
+            <div class="subtotales">
+                🔩 Materiales: $<span id="totalMateriales">0</span> <br>
+                👷 Mano de Obra: $<span id="totalManoObra">0</span>
             </div>
-            <h3>💰 TOTAL: $<span id="precioTotal">0</span></h3>
-            <small style="display:block; margin-top:5px; font-size: 0.8em; color: #0f3460;">
-                Items: <span id="contadorItems">0</span>
-            </small>
+            <h3>💰 TOTAL FINAL: $<span id="precioTotal">0</span></h3>
         </div>
     </div>
 
     <script>
         let baseDatos = JSON.parse(localStorage.getItem('CODEPOP_DB')) || [];
         let clienteActualIndex = null;
+
+        // --- BASE DE PRECIOS DE MERCADO (TÚ LA ACTUALIZAS ACÁ) ---
+        const PRECIOS_MERCADO = {
+            // Materiales Genéricos
+            "material": [
+                { nombre: "Cable 2.5mm (Rollo)", precio: 45000 },
+                { nombre: "Cable 1.5mm (Rollo)", precio: 38000 },
+                { nombre: "Tecla Punto y Toma", precio: 3500 },
+                { nombre: "Cinta Aisladora", precio: 1500 },
+                { nombre: "Aceite 10w40", precio: 12000 },
+                { nombre: "Filtro de Aire", precio: 8000 }
+            ],
+            // Mano de Obra por Rubro
+            "mano_obra": {
+                "⚡ Electricidad": [
+                    { nombre: "Boca de luz (Instalación)", precio: 15000 },
+                    { nombre: "Cambio de Térmica", precio: 25000 },
+                    { nombre: "Urgencia 24hs", precio: 40000 }
+                ],
+                "🚗 Automotriz": [
+                    { nombre: "Escaneo Computarizado", precio: 20000 },
+                    { nombre: "Cambio de Aceite y Filtros", precio: 18000 }
+                ],
+                "🔧 Mecánica": [
+                    { nombre: "Mano de Obra General (Hora)", precio: 15000 }
+                ],
+                "🔥 Gasista": [
+                    { nombre: "Instalación Estufa", precio: 35000 },
+                    { nombre: "Búsqueda de Fuga", precio: 40000 }
+                ],
+                "🛠️ Varios": [
+                    { nombre: "Visita Técnica", precio: 10000 }
+                ]
+            }
+        };
 
         // --- GESTIÓN DE CLIENTES ---
 
@@ -245,16 +280,17 @@
                 return;
             }
 
-            baseDatos.forEach(function(cliente, index) {
+            baseDatos.forEach((cliente, index) => {
                 let totalItems = cliente.items.length;
-                let rubroMostrar = cliente.rubro || '🛠 Varios';
+                let rubroMostrar = cliente.rubro || '🛠️ Varios'; 
                 
                 let html = `
                     <li>
                         <div class="info-producto">
                             <span class="nombre-item">
                                 ${cliente.nombre}
-                                <spam class="rubro-badge">${rubroMostrar}</span> </span>
+                                <span class="rubro-badge">${rubroMostrar}</span>
+                            </span>
                             <span class="detalle-item">${totalItems} items guardados</span>
                         </div>
                         <div>
@@ -270,7 +306,7 @@
         const borrarCliente = (index) => {
             Swal.fire({
                 title: '¿Borrar proyecto?',
-                text: "Se perderán todos los materiales de este cliente.",
+                text: "Se perderán todos los datos.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -289,18 +325,91 @@
             let cliente = baseDatos[index];
 
             document.getElementById('tituloPresupuesto').innerText = "OBRA: " + cliente.nombre.toUpperCase();
+            document.getElementById('subtituloRubro').innerText = cliente.rubro || "Rubro: Varios";
+
             document.getElementById('vista-clientes').style.display = 'none';
             document.getElementById('vista-presupuesto').style.display = 'block';
-            document.getElementById('subtituloRubro').innerText = cliente.rubro || "Rubro: Varios";
+
+            // Reseteamos el selector y cargamos sugerencias iniciales
+            document.getElementById('tipoItemInput').value = "material";
+            cambiarPlaceholders();
+            actualizarSugerencias();
 
             actualizarVistaPresupuesto();
         }
 
-       const volverInicio = () => {
+        const volverInicio = () => {
             clienteActualIndex = null; 
             document.getElementById('vista-presupuesto').style.display = 'none';
             document.getElementById('vista-clientes').style.display = 'block';
             mostrarClientes(); 
+        }
+
+        // --- LÓGICA INTELIGENTE DE PRECIOS ---
+
+        const cambiarPlaceholders = () => {
+            let tipo = document.getElementById('tipoItemInput').value;
+            let nombreInput = document.getElementById('nombreInput');
+            let precioInput = document.getElementById('precioInput');
+
+            if (tipo === 'mano_obra') {
+                nombreInput.placeholder = "Trabajo a realizar (Ej: Instalación)";
+                precioInput.placeholder = "Precio del Trabajo";
+            } else {
+                nombreInput.placeholder = "Material (Ej: Cable)";
+                precioInput.placeholder = "Precio Unitario";
+            }
+            // Recargamos la lista de autocompletado
+            actualizarSugerencias();
+        }
+
+        const actualizarSugerencias = () => {
+            let tipo = document.getElementById('tipoItemInput').value;
+            let cliente = baseDatos[clienteActualIndex];
+            let rubro = cliente.rubro || "🛠️ Varios";
+            let lista = document.getElementById('listaPrecios');
+            
+            lista.innerHTML = ""; // Limpiar lista anterior
+
+            let opciones = [];
+
+            if (tipo === 'material') {
+                opciones = PRECIOS_MERCADO.material;
+            } else {
+                // Si es mano de obra, buscamos las del rubro del cliente
+                opciones = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"];
+            }
+
+            if (opciones) {
+                opciones.forEach(item => {
+                    let option = document.createElement('option');
+                    option.value = item.nombre;
+                    // Guardamos el precio en un atributo data para usarlo después
+                    option.setAttribute('data-precio', item.precio); 
+                    lista.appendChild(option);
+                });
+            }
+        }
+
+        const autocompletarPrecio = () => {
+            let nombreIngresado = document.getElementById('nombreInput').value;
+            let tipo = document.getElementById('tipoItemInput').value;
+            let cliente = baseDatos[clienteActualIndex];
+            let rubro = cliente.rubro || "🛠️ Varios";
+
+            let listaItems = [];
+            if (tipo === 'material') {
+                listaItems = PRECIOS_MERCADO.material;
+            } else {
+                listaItems = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"];
+            }
+
+            // Buscamos si el nombre existe en nuestra base de precios
+            let encontrado = listaItems.find(item => item.nombre === nombreIngresado);
+
+            if (encontrado) {
+                document.getElementById('precioInput').value = encontrado.precio;
+            }
         }
 
 
@@ -339,69 +448,67 @@
         }
 
         const actualizarVistaPresupuesto = () => {
-    let contenedor = document.getElementById('contenedorListas');
-    contenedor.innerHTML = "";
-    
-    let itemsCliente = baseDatos[clienteActualIndex].items;
-    
-    let sumaMateriales = 0;
-    let sumaManoObra = 0;
-    let htmlMateriales = "";
-    let htmlManoObra = "";
+            let contenedor = document.getElementById('contenedorListas');
+            contenedor.innerHTML = "";
+            
+            let itemsCliente = baseDatos[clienteActualIndex].items;
+            
+            let sumaMateriales = 0;
+            let sumaManoObra = 0;
+            let htmlMateriales = "";
+            let htmlManoObra = "";
 
-    itemsCliente.forEach((producto, i) => {
-        let subtotal = producto.cantidad * producto.precio;
-        
-        // Calculamos totales separados
-        if (producto.tipo === 'mano_obra') {
-            sumaManoObra += subtotal;
-        } else {
-            sumaMateriales += subtotal;
+            itemsCliente.forEach((producto, i) => {
+                let subtotal = producto.cantidad * producto.precio;
+                
+                if (producto.tipo === 'mano_obra') {
+                    sumaManoObra += subtotal;
+                } else {
+                    sumaMateriales += subtotal;
+                }
+
+                let claseExtra = (producto.tipo === 'mano_obra') ? 'mano-obra' : '';
+                let icono = (producto.tipo === 'mano_obra') ? '👷' : '🔩';
+
+                let htmlItem = `
+                    <li class="${claseExtra}">
+                        <div class="info-producto">
+                            <span class="nombre-item">
+                                <span class="cantidad-badge">${producto.cantidad}x</span> 
+                                ${icono} ${producto.nombre}
+                            </span>
+                            <span class="detalle-item">
+                                $${producto.precio.toLocaleString()} | Sub: $${subtotal.toLocaleString()}
+                            </span>
+                        </div>
+                        <div class="acciones">
+                            <button class="btn-edit" onclick="editarItem(${i})">✎</button>
+                            <button class="btn-delete" onclick="borrarItem(${i})">✕</button>
+                        </div>
+                    </li>
+                `;
+
+                if (producto.tipo === 'mano_obra') {
+                    htmlManoObra += htmlItem;
+                } else {
+                    htmlMateriales += htmlItem;
+                }
+            });
+
+            if (htmlMateriales !== "") {
+                contenedor.innerHTML += `<div class="titulo-seccion">🔩 MATERIALES</div><ul>${htmlMateriales}</ul>`;
+            }
+            if (htmlManoObra !== "") {
+                contenedor.innerHTML += `<div class="titulo-seccion">👷 MANO DE OBRA</div><ul>${htmlManoObra}</ul>`;
+            }
+            if (itemsCliente.length === 0) {
+                contenedor.innerHTML = "<p style='color:#666'>Lista vacía</p>";
+            }
+
+            document.getElementById('totalMateriales').innerText = sumaMateriales.toLocaleString();
+            document.getElementById('totalManoObra').innerText = sumaManoObra.toLocaleString();
+            document.getElementById('precioTotal').innerText = (sumaMateriales + sumaManoObra).toLocaleString();
         }
-
-        // Estilos diferentes según tipo
-        let claseExtra = (producto.tipo === 'mano_obra') ? 'mano-obra' : '';
-        let icono = (producto.tipo === 'mano_obra') ? '👷' : '🔩';
-
-        let htmlItem = `
-            <li class="${claseExtra}">
-                <div class="info-producto">
-                    <span class="nombre-item">
-                        <span class="cantidad-badge">${producto.cantidad}x</span> 
-                        ${icono} ${producto.nombre}
-                    </span>
-                    <span class="detalle-item">
-                        $${producto.precio.toLocaleString()} | Sub: $${subtotal.toLocaleString()}
-                    </span>
-                </div>
-                <div class="acciones">
-                    <button class="btn-edit" onclick="editarItem(${i})">✎</button>
-                    <button class="btn-delete" onclick="borrarItem(${i})">✕</button>
-                </div>
-            </li>
-        `;
-
-        // Separamos en dos variables de texto
-        if (producto.tipo === 'mano_obra') {
-            htmlManoObra += htmlItem;
-        } else {
-            htmlMateriales += htmlItem;
-        }
-    });
-
-    // Inyectamos el HTML ordenado
-    if (htmlMateriales !== "") {
-        contenedor.innerHTML += `<div class="titulo-seccion">🔩 MATERIALES</div><ul>${htmlMateriales}</ul>`;
-    }
-    if (htmlManoObra !== "") {
-        contenedor.innerHTML += `<div class="titulo-seccion">👷 MANO DE OBRA</div><ul>${htmlManoObra}</ul>`;
-    }
-
-    // Actualizamos los números en pantalla
-    document.getElementById('totalMateriales').innerText = sumaMateriales.toLocaleString();
-    document.getElementById('totalManoObra').innerText = sumaManoObra.toLocaleString();
-    document.getElementById('precioTotal').innerText = (sumaMateriales + sumaManoObra).toLocaleString();
-}
 
         const borrarItem = (i) => {
             baseDatos[clienteActualIndex].items.splice(i, 1);
@@ -411,10 +518,15 @@
 
         const editarItem = (i) => {
             let item = baseDatos[clienteActualIndex].items[i];
+            
             document.getElementById('nombreInput').value = item.nombre;
             document.getElementById('cantidadInput').value = item.cantidad;
             document.getElementById('precioInput').value = item.precio;
+            document.getElementById('tipoItemInput').value = item.tipo || 'material';
             
+            // Forzamos la actualización de placeholders al editar
+            cambiarPlaceholders();
+
             borrarItem(i); 
         }
 
@@ -430,8 +542,11 @@
             }
 
             let datos = cliente.items.map(item => ({
-                "Producto": item.nombre, "Cantidad": item.cantidad, 
-                "Precio Unitario": item.precio, "Subtotal": item.cantidad * item.precio
+                "Tipo": (item.tipo === 'mano_obra') ? "Mano de Obra" : "Material",
+                "Descripción": item.nombre, 
+                "Cantidad": item.cantidad, 
+                "Precio Unitario": item.precio, 
+                "Subtotal": item.cantidad * item.precio
             }));
 
             let hoja = XLSX.utils.json_to_sheet(datos);
@@ -440,41 +555,53 @@
             XLSX.writeFile(libro, "Presupuesto_" + cliente.nombre + ".xlsx");
         }
 
-        // --- WHATSAPP SIMPLE ---
         const compartirWhatsapp = () => {
             let cliente = baseDatos[clienteActualIndex];
             let items = cliente.items;
             
             if (items.length === 0) {
-                Swal.fire({ icon: 'info', title: 'Vacío', text: 'Agrega materiales para compartir', background: '#16213e', color: '#fff' });
+                Swal.fire({ icon: 'info', title: 'Vacío', text: 'Nada para enviar', background: '#16213e', color: '#fff' });
                 return;
             }
 
-            // 1. Calculamos Total ($)
-            let total = 0;
-            items.forEach(i => total += (i.cantidad * i.precio));
+            let mat = 0;
+            let mo = 0;
+            items.forEach(i => {
+                if(i.tipo === 'mano_obra') mo += (i.cantidad * i.precio);
+                else mat += (i.cantidad * i.precio);
+            });
+            let total = mat + mo;
 
-            // 2. Armamos el mensaje simple que pediste
-            let texto = `Hola ${cliente.nombre}, el total de materiales para la obra es $${total.toLocaleString()}. Son ${items.length} items. Avísame si avanzamos.`;
+            let texto = `Hola ${cliente.nombre}. Te paso el presupuesto de ${cliente.rubro || 'la obra'}:\n\n` +
+                        `🔩 Materiales: $${mat.toLocaleString()}\n` +
+                        `👷 Mano de Obra: $${mo.toLocaleString()}\n` +
+                        `💰 *TOTAL: $${total.toLocaleString()}*\n\n` +
+                        `Avísame si avanzamos.`;
 
-            // 3. Enviamos
             let textoCodificado = encodeURIComponent(texto);
             window.open(`https://wa.me/?text=${textoCodificado}`, '_blank');
         }
-
-        mostrarClientes();
         
-        // TECLAS RÁPIDAS
-         document.getElementById('nombreInput').addEventListener('keydown', function(e) {
+        // --- INICIALIZACIÓN Y EVENTOS ---
+        
+        mostrarClientes();
+
+        // Detectar cambios para actualizar placeholders y sugerencias
+        document.getElementById('tipoItemInput').addEventListener('change', cambiarPlaceholders);
+        
+        // Detectar escritura para autocompletar precio
+        document.getElementById('nombreInput').addEventListener('input', autocompletarPrecio);
+
+        // Teclas Rápidas
+         document.getElementById('nombreInput').addEventListener('keydown', (e) => {
             if (e.key === "Enter") { e.preventDefault(); document.getElementById('cantidadInput').focus(); }
         });
-        document.getElementById('cantidadInput').addEventListener('keydown', function(e) {
+        document.getElementById('cantidadInput').addEventListener('keydown', (e) => {
             if (e.key === "Enter") { e.preventDefault(); document.getElementById('precioInput').focus(); }
         });
-        document.getElementById('precioInput').addEventListener('keydown', function(e) {
+        document.getElementById('precioInput').addEventListener('keydown', (e) => {
             if (e.key === "Enter") agregarProducto();
         });
-
 
     </script>
 </body>
