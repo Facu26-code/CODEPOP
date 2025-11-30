@@ -211,9 +211,8 @@
         let baseDatos = JSON.parse(localStorage.getItem('CODEPOP_DB')) || [];
         let clienteActualIndex = null;
 
-        // --- BASE DE PRECIOS DE MERCADO (TÚ LA ACTUALIZAS ACÁ) ---
+        // --- BASE DE PRECIOS DE MERCADO ---
         const PRECIOS_MERCADO = {
-            // Materiales Genéricos
             "material": [
                 { nombre: "Cable 2.5mm (Rollo)", precio: 45000 },
                 { nombre: "Cable 1.5mm (Rollo)", precio: 38000 },
@@ -222,7 +221,6 @@
                 { nombre: "Aceite 10w40", precio: 12000 },
                 { nombre: "Filtro de Aire", precio: 8000 }
             ],
-            // Mano de Obra por Rubro
             "mano_obra": {
                 "⚡ Electricidad": [
                     { nombre: "Boca de luz (Instalación)", precio: 15000 },
@@ -234,7 +232,7 @@
                     { nombre: "Cambio de Aceite y Filtros", precio: 18000 }
                 ],
                 "🔧 Mecánica": [
-                    { nombre: "Mano de Obra General (Hora)", precio: 15000 }
+                    { nombre: "Mano de Obra General", precio: 15000 }
                 ],
                 "🔥 Gasista": [
                     { nombre: "Instalación Estufa", precio: 35000 },
@@ -345,19 +343,28 @@
             mostrarClientes(); 
         }
 
-        // --- LÓGICA INTELIGENTE DE PRECIOS ---
+        // --- LÓGICA INTELIGENTE DE PRECIOS Y VISIBILIDAD ---
 
         const cambiarPlaceholders = () => {
             let tipo = document.getElementById('tipoItemInput').value;
             let nombreInput = document.getElementById('nombreInput');
+            let cantidadInput = document.getElementById('cantidadInput');
             let precioInput = document.getElementById('precioInput');
 
             if (tipo === 'mano_obra') {
                 nombreInput.placeholder = "Trabajo a realizar (Ej: Instalación)";
-                precioInput.placeholder = "Precio del Trabajo";
+                precioInput.placeholder = "Precio Final del Trabajo";
+                
+                // OCULTAR CANTIDAD
+                cantidadInput.style.display = 'none';
+                cantidadInput.value = 1; // Le damos valor 1 para que la matemática no falle
             } else {
                 nombreInput.placeholder = "Material (Ej: Cable)";
                 precioInput.placeholder = "Precio Unitario";
+                
+                // MOSTRAR CANTIDAD
+                cantidadInput.style.display = 'inline-block';
+                cantidadInput.value = ""; // Limpiamos para que escribas
             }
             // Recargamos la lista de autocompletado
             actualizarSugerencias();
@@ -369,14 +376,13 @@
             let rubro = cliente.rubro || "🛠️ Varios";
             let lista = document.getElementById('listaPrecios');
             
-            lista.innerHTML = ""; // Limpiar lista anterior
+            lista.innerHTML = ""; 
 
             let opciones = [];
 
             if (tipo === 'material') {
                 opciones = PRECIOS_MERCADO.material;
             } else {
-                // Si es mano de obra, buscamos las del rubro del cliente
                 opciones = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"];
             }
 
@@ -384,7 +390,6 @@
                 opciones.forEach(item => {
                     let option = document.createElement('option');
                     option.value = item.nombre;
-                    // Guardamos el precio en un atributo data para usarlo después
                     option.setAttribute('data-precio', item.precio); 
                     lista.appendChild(option);
                 });
@@ -404,7 +409,6 @@
                 listaItems = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"];
             }
 
-            // Buscamos si el nombre existe en nuestra base de precios
             let encontrado = listaItems.find(item => item.nombre === nombreIngresado);
 
             if (encontrado) {
@@ -426,16 +430,17 @@
             let nuevoItem = {
                 tipo: tipo,
                 nombre: nombre,
-                cantidad: parseInt(cantidad),
+                cantidad: parseInt(cantidad), // Si está oculto, tomará el 1 que pusimos
                 precio: parseFloat(precio)
             };
 
             baseDatos[clienteActualIndex].items.push(nuevoItem);
             
             document.getElementById('nombreInput').value ="";
-            document.getElementById('cantidadInput').value = "";
-            document.getElementById('precioInput').value = "";
+            // Si es material, limpiamos cantidad. Si es mano obra, se mantiene en 1 oculto.
+            if(tipo === 'material') document.getElementById('cantidadInput').value = "";
             
+            document.getElementById('precioInput').value = "";
             document.getElementById('nombreInput').focus();
             
             guardarDB();
@@ -469,12 +474,17 @@
 
                 let claseExtra = (producto.tipo === 'mano_obra') ? 'mano-obra' : '';
                 let icono = (producto.tipo === 'mano_obra') ? '👷' : '🔩';
+                
+                // Si es Mano de Obra, NO mostramos la cantidad (ej: "1x")
+                let cantidadTexto = (producto.tipo === 'mano_obra') 
+                    ? '' 
+                    : `<span class="cantidad-badge">${producto.cantidad}x</span>`;
 
                 let htmlItem = `
                     <li class="${claseExtra}">
                         <div class="info-producto">
                             <span class="nombre-item">
-                                <span class="cantidad-badge">${producto.cantidad}x</span> 
+                                ${cantidadTexto} 
                                 ${icono} ${producto.nombre}
                             </span>
                             <span class="detalle-item">
@@ -522,9 +532,12 @@
             document.getElementById('nombreInput').value = item.nombre;
             document.getElementById('cantidadInput').value = item.cantidad;
             document.getElementById('precioInput').value = item.precio;
-            document.getElementById('tipoItemInput').value = item.tipo || 'material';
             
-            // Forzamos la actualización de placeholders al editar
+            // Cambiamos el select al tipo correcto
+            let selectTipo = document.getElementById('tipoItemInput');
+            selectTipo.value = item.tipo || 'material';
+            
+            // Disparamos el evento para que oculte/muestre la cantidad según corresponda
             cambiarPlaceholders();
 
             borrarItem(i); 
@@ -544,7 +557,7 @@
             let datos = cliente.items.map(item => ({
                 "Tipo": (item.tipo === 'mano_obra') ? "Mano de Obra" : "Material",
                 "Descripción": item.nombre, 
-                "Cantidad": item.cantidad, 
+                "Cantidad": (item.tipo === 'mano_obra') ? '-' : item.cantidad, 
                 "Precio Unitario": item.precio, 
                 "Subtotal": item.cantidad * item.precio
             }));
