@@ -81,12 +81,12 @@ const mostrarClientes = () => {
     );
 
     if(baseDatos.length === 0) { 
-        listaHTML.innerHTML = "<p style='color:#aaa; font-size: 0.8em;'>INSERT COIN (No hay proyectos)</p>"; 
+        listaHTML.innerHTML = "<p style='color:var(--text-secondary); font-size: 0.9em;'>No hay proyectos registrados.</p>"; 
         return; 
     } 
 
     if (clientesFiltrados.length === 0) {
-        listaHTML.innerHTML = "<p style='color:#aaa; font-size: 0.8em;'>NO MATCH FOUND</p>"; 
+        listaHTML.innerHTML = "<p style='color:var(--text-secondary); font-size: 0.9em;'>No se encontraron resultados.</p>"; 
         return;
     }
 
@@ -99,18 +99,23 @@ const mostrarClientes = () => {
          
         let li = document.createElement('li');
         
-        // Estilo borde según estado
-        if(estado === 'En Progreso') li.style.borderLeftColor = '#00f3ff'; // Neon Blue
-        else if(estado === 'Terminado') li.style.borderLeftColor = '#25D366'; // Green
-        else if(estado === 'Cobrado') li.style.borderLeftColor = '#FFD700'; // Gold
-        else li.style.borderLeftColor = '#ff9f43'; // Default Orange/Red
+        // Estilo borde según estado (Professional Colors)
+        if(estado === 'En Progreso') li.style.borderLeftColor = 'var(--info-color)'; 
+        else if(estado === 'Terminado') li.style.borderLeftColor = 'var(--success-color)'; 
+        else if(estado === 'Cobrado') li.style.borderLeftColor = 'var(--warning-color)'; 
+        else li.style.borderLeftColor = 'var(--primary-color)'; 
 
         let divInfo = document.createElement('div');
         divInfo.className = 'info-producto';
 
         let spanNombre = document.createElement('span');
         spanNombre.className = 'nombre-item';
-        spanNombre.textContent = cliente.nombre + ' ';
+        spanNombre.textContent = cliente.nombre;
+
+        let divBadges = document.createElement('div');
+        divBadges.style.display = 'flex';
+        divBadges.style.gap = '5px';
+        divBadges.style.marginTop = '4px';
 
         let spanRubro = document.createElement('span');
         spanRubro.className = 'rubro-badge';
@@ -118,31 +123,40 @@ const mostrarClientes = () => {
 
         let spanEstado = document.createElement('span');
         spanEstado.className = 'rubro-badge';
-        spanEstado.style.borderColor = '#fff';
-        spanEstado.style.color = '#fff';
-        spanEstado.style.marginLeft = '5px';
+        
+        // Estado Badge Styling
+        spanEstado.style.backgroundColor = '#f1f5f9';
+        spanEstado.style.color = 'var(--text-secondary)';
+        spanEstado.style.marginLeft = '0';
+        
+        if(estado === 'En Progreso') { spanEstado.style.backgroundColor = '#ecfeff'; spanEstado.style.color = '#0e7490'; }
+        if(estado === 'Terminado') { spanEstado.style.backgroundColor = '#f0fdf4'; spanEstado.style.color = '#15803d'; }
+        if(estado === 'Cobrado') { spanEstado.style.backgroundColor = '#fffbeb'; spanEstado.style.color = '#b45309'; }
+
         spanEstado.textContent = estado;
         
-        spanNombre.appendChild(spanRubro);
-        spanNombre.appendChild(spanEstado);
+        divBadges.appendChild(spanRubro);
+        divBadges.appendChild(spanEstado);
 
         let spanDetalle = document.createElement('span');
         spanDetalle.className = 'detalle-item';
-        spanDetalle.textContent = totalItems + ' items guardados';
+        spanDetalle.textContent = totalItems + ' items';
 
         divInfo.appendChild(spanNombre);
+        divInfo.appendChild(divBadges);
         divInfo.appendChild(spanDetalle);
 
         let divAcciones = document.createElement('div');
+        divAcciones.className = 'acciones';
 
         let btnDelete = document.createElement('button');
         btnDelete.className = 'btn-delete';
-        btnDelete.textContent = 'DEL';
+        btnDelete.textContent = 'Eliminar';
         btnDelete.onclick = () => borrarCliente(index);
 
         let btnOpen = document.createElement('button');
         btnOpen.className = 'btn-open';
-        btnOpen.textContent = 'OPEN';
+        btnOpen.textContent = 'Abrir';
         btnOpen.onclick = () => abrirPresupuesto(index);
 
         divAcciones.appendChild(btnDelete);
@@ -157,15 +171,14 @@ const mostrarClientes = () => {
 
 const borrarCliente = (index) => { 
     Swal.fire({ 
-        title: '¿GAME OVER?', 
-        text: "Se perderán todos los datos.", 
+        title: '¿Eliminar Proyecto?', 
+        text: "Esta acción no se puede deshacer.", 
         icon: 'warning', 
         showCancelButton: true, 
-        confirmButtonColor: '#d33', 
-        cancelButtonColor: '#30344c', 
-        background: '#1a1a2e', color: '#fff', 
-        confirmButtonText: 'YES, DELETE', 
-        cancelButtonText: 'NO, WAIT' 
+        confirmButtonColor: '#ef4444', 
+        cancelButtonColor: '#64748b', 
+        confirmButtonText: 'Sí, eliminar', 
+        cancelButtonText: 'Cancelar' 
     }).then((result) => { 
         if (result.isConfirmed) { 
             baseDatos.splice(index, 1); 
@@ -179,7 +192,7 @@ const abrirPresupuesto = (index) => {
     clienteActualIndex = index; 
     let cliente = baseDatos[index]; 
 
-    document.getElementById('tituloPresupuesto').innerText = "LEVEL: " + cliente.nombre.toUpperCase(); 
+    document.getElementById('tituloPresupuesto').innerText = "Proyecto: " + cliente.nombre; 
     document.getElementById('subtituloRubro').innerText = cliente.rubro || "Rubro: Varios"; 
     
     // Set estado
@@ -290,10 +303,9 @@ const agregarProducto = () => {
 
     if (cant <= 0 || prec < 0) {
         Swal.fire({ 
-            title: 'INVALID INPUT', 
+            title: 'Datos inválidos', 
             text: "Cantidad y precio deben ser positivos.", 
-            icon: 'error', 
-            background: '#1a1a2e', color: '#fff' 
+            icon: 'error'
         });
         return;
     }
@@ -317,8 +329,8 @@ const agregarProducto = () => {
     actualizarVistaPresupuesto(); 
      
     Swal.fire({ 
-        position: 'top-end', icon: 'success', title: 'SAVED!',  
-        showConfirmButton: false, timer: 800, background: '#1a1a2e', color: '#fff' 
+        position: 'top-end', icon: 'success', title: 'Guardado',  
+        showConfirmButton: false, timer: 1000 
     }); 
 } 
 
@@ -385,12 +397,12 @@ const actualizarVistaPresupuesto = () => {
 
         let btnEdit = document.createElement('button');
         btnEdit.className = 'btn-edit';
-        btnEdit.textContent = 'EDIT';
+        btnEdit.textContent = 'Editar';
         btnEdit.onclick = () => editarItem(i);
 
         let btnDelete = document.createElement('button');
         btnDelete.className = 'btn-delete';
-        btnDelete.textContent = 'X';
+        btnDelete.textContent = 'Eliminar';
         btnDelete.onclick = () => borrarItem(i);
 
         divAcciones.appendChild(btnEdit);
@@ -424,9 +436,9 @@ const actualizarVistaPresupuesto = () => {
     } 
     if (itemsCliente.length === 0) { 
         let p = document.createElement('p');
-        p.style.color = '#666';
-        p.style.fontSize = '0.8em';
-        p.textContent = 'LISTA VACÍA';
+        p.style.color = 'var(--text-secondary)';
+        p.style.fontSize = '0.9em';
+        p.textContent = 'No hay items cargados.';
         contenedor.appendChild(p);
     } 
 
@@ -463,7 +475,7 @@ const guardarDB = () => {
 const descargarExcel = () => { 
     let cliente = baseDatos[clienteActualIndex]; 
     if (cliente.items.length === 0) { 
-        Swal.fire({ icon: 'info', title: 'EMPTY', text: 'Agrega items primero', background: '#1a1a2e', color: '#fff', confirmButtonText: 'OK' }); 
+        Swal.fire({ icon: 'info', title: 'Vacío', text: 'No hay items para exportar.' }); 
         return; 
     } 
 
@@ -484,7 +496,7 @@ const descargarExcel = () => {
 const descargarPDF = () => {
     let cliente = baseDatos[clienteActualIndex];
     if (cliente.items.length === 0) {
-        Swal.fire({ icon: 'info', title: 'EMPTY', text: 'Agrega items primero', background: '#1a1a2e', color: '#fff', confirmButtonText: 'OK' });
+        Swal.fire({ icon: 'info', title: 'Vacío', text: 'No hay items para exportar.' });
         return;
     }
 
@@ -532,7 +544,7 @@ const descargarPDF = () => {
         head: [columns],
         body: rows,
         theme: 'striped',
-        headStyles: { fillColor: [15, 52, 96], textColor: 255, fontStyle: 'bold' }, // Color var(--pixel-panel)
+        headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold' }, // Blue 500
         styles: { fontSize: 10, cellPadding: 3 },
     });
 
@@ -556,7 +568,7 @@ const compartirWhatsapp = () => {
     let items = cliente.items; 
      
     if (items.length === 0) { 
-        Swal.fire({ icon: 'info', title: 'EMPTY', text: 'Nada para enviar', background: '#1a1a2e', color: '#fff', confirmButtonText: 'OK' }); 
+        Swal.fire({ icon: 'info', title: 'Vacío', text: 'Nada para enviar.' }); 
         return; 
     } 
 
@@ -604,12 +616,12 @@ const importarBackup = (input) => {
                 baseDatos = importedData;
                 guardarDB();
                 mostrarClientes();
-                Swal.fire({ icon: 'success', title: 'RESTORED!', text: 'Base de datos restaurada correctamente.', background: '#1a1a2e', color: '#fff' });
+                Swal.fire({ icon: 'success', title: 'Restaurado', text: 'Base de datos restaurada correctamente.' });
             } else {
                 throw new Error("Formato inválido");
             }
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'ERROR', text: 'El archivo no es válido.', background: '#1a1a2e', color: '#fff' });
+            Swal.fire({ icon: 'error', title: 'Error', text: 'El archivo no es válido.' });
         }
     };
     reader.readAsText(file);
