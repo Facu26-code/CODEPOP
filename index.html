@@ -3,8 +3,13 @@
 <head> 
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>CODEPOP - Pixel Edition</title> 
+    <title>CODEPOP - Gestión</title> 
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Importamos Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
  
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
@@ -16,32 +21,32 @@
 <body> 
  
     <div id="vista-clientes"> 
-        <h1>👾 MIS PROYECTOS 👾</h1> 
+        <h1>Gestión de Proyectos</h1> 
          
         <div class="panel-control"> 
-            <input type="text" id="nuevoClienteInput" placeholder="Nombre Cliente (Ej: Juan)"> 
+            <input type="text" id="nuevoClienteInput" placeholder="Nombre del Cliente / Proyecto"> 
              
             <select id="rubroInput"> 
-                <option value="⚡ Electricidad">⚡ Electricidad</option> 
-                <option value="🔧 Mecánica">🔧 Mecánica</option> 
-                <option value="📋 Gestor Automotor">📋 Gestor Automotor</option> 
-                <option value="🔥 Gasista">🔥 Gasista</option> 
-                <option value="🛠️ Varios">🛠️ Varios</option> 
+                <option value="Electricidad">Electricidad</option> 
+                <option value="Mecánica">Mecánica</option> 
+                <option value="Gestoría">Gestoría</option> 
+                <option value="Gasista">Gasista</option> 
+                <option value="Varios">Varios</option> 
             </select> 
  
             <div class="btn-container"> 
-                <button class="btn-add" onclick="crearNuevoCliente()">+ START</button> 
+                <button class="btn-add" onclick="crearNuevoCliente()">+ Crear Proyecto</button> 
             </div> 
 
-            <div style="margin-top: 15px; border-top: 2px dashed #30344c; padding-top: 15px;">
-                <input type="text" id="buscadorInput" placeholder="🔍 Buscar Proyecto..." oninput="mostrarClientes()">
+            <div class="search-container">
+                <input type="text" id="buscadorInput" placeholder="Buscar proyecto..." oninput="mostrarClientes()">
             </div>
         </div> 
 
-        <div style="text-align: right; max-width: 500px; margin: 0 auto; margin-bottom: 10px;">
-            <button class="btn-edit" onclick="exportarBackup()">⬇ Backup</button>
+        <div style="text-align: right; max-width: 600px; margin: 0 auto; margin-bottom: 10px;">
+            <button class="btn-secondary" onclick="exportarBackup()">Exportar Backup</button>
             <input type="file" id="fileInput" style="display:none" onchange="importarBackup(this)">
-            <button class="btn-edit" onclick="document.getElementById('fileInput').click()">⬆ Restore</button>
+            <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">Restaurar Backup</button>
         </div>
  
         <ul id="listaClientesVisual"></ul> 
@@ -50,38 +55,38 @@
  
     <div id="vista-presupuesto" style="display:none;"> 
          
-        <div style="text-align: left; max-width: 500px; margin: 0 auto; margin-bottom: 20px;"> 
-            <button class="btn-empty" onclick="volverInicio()">◀ BACK</button> 
+        <div style="text-align: left; max-width: 600px; margin: 0 auto; margin-bottom: 20px;"> 
+            <button class="btn-secondary" onclick="volverInicio()">◀ Volver</button> 
         </div> 
  
-        <h1 id="tituloPresupuesto">PRESUPUESTO</h1> 
-        <div style="margin-bottom: 20px;">
-            <span id="subtituloRubro" style="color:var(--neon-blue); font-size: 0.7em; display: block; margin-bottom: 5px;"></span>
-            <select id="estadoProyectoInput" onchange="cambiarEstadoProyecto()" style="width: auto; padding: 5px; font-size: 0.6em; margin: 0;">
-                <option value="Presupuestado">🟣 Presupuestado</option>
-                <option value="En Progreso">🔵 En Progreso</option>
-                <option value="Terminado">🟢 Terminado</option>
-                <option value="Cobrado">💰 Cobrado</option>
+        <h1 id="tituloPresupuesto">Detalle del Presupuesto</h1> 
+        <div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <span id="subtituloRubro" style="font-weight: 500;"></span>
+            <select id="estadoProyectoInput" onchange="cambiarEstadoProyecto()" class="status-select">
+                <option value="Presupuestado">Presupuestado</option>
+                <option value="En Progreso">En Progreso</option>
+                <option value="Terminado">Terminado</option>
+                <option value="Cobrado">Cobrado</option>
             </select>
         </div>
          
         <div class="panel-control"> 
-            <select id="tipoItemInput" style="background-color: #2c3e50; border-color: var(--neon-blue);"> 
-                <option value="material">🔩 MATERIAL</option> 
-                <option value="mano_obra">👷 MANO DE OBRA</option> 
+            <select id="tipoItemInput"> 
+                <option value="material">Material</option> 
+                <option value="mano_obra">Mano de Obra</option> 
             </select> 
  
-            <input list="listaPrecios" type="text" id="nombreInput" placeholder="Descripción ITEM"> 
+            <input list="listaPrecios" type="text" id="nombreInput" placeholder="Descripción del Item"> 
             <datalist id="listaPrecios"></datalist> 
  
-            <input type="number" id="cantidadInput" placeholder="CANT." min="1"> 
-            <input type="number" id="precioInput" placeholder="$ PRECIO" min="0"> 
+            <input type="number" id="cantidadInput" placeholder="Cant." min="1"> 
+            <input type="number" id="precioInput" placeholder="$ Precio" min="0"> 
              
             <div class="btn-container"> 
-                <button class="btn-add" onclick="agregarProducto()">SAVE ITEM</button> 
-                <button class="btn-excel" onclick="descargarExcel()">💾 EXCEL</button> 
-                <button class="btn-whatsapp" onclick="descargarPDF()" style="background: #e74c3c; color: white;">📄 PDF</button> 
-                <button class="btn-whatsapp" onclick="compartirWhatsapp()">📞 WHATSAPP</button> 
+                <button class="btn-add" onclick="agregarProducto()">Guardar Item</button> 
+                <button class="btn-secondary" onclick="descargarExcel()">Excel</button> 
+                <button class="btn-secondary" onclick="descargarPDF()">PDF</button> 
+                <button class="btn-whatsapp" onclick="compartirWhatsapp()">WhatsApp</button> 
             </div> 
         </div> 
  
@@ -89,10 +94,10 @@
  
         <div class="caja-total"> 
             <div class="subtotales"> 
-                🔩 Materiales: $<span id="totalMateriales">0</span> <br> 
-                <div style="height: 10px;"></div> 👷 Mano de Obra: $<span id="totalManoObra">0</span> 
+                <div class="subtotal-row"><span>Materiales:</span> <span>$<span id="totalMateriales">0</span></span></div>
+                <div class="subtotal-row"><span>Mano de Obra:</span> <span>$<span id="totalManoObra">0</span></span></div>
             </div> 
-            <h3>💰 TOTAL: $<span id="precioTotal">0</span></h3> 
+            <h3 class="total-final">TOTAL: $<span id="precioTotal">0</span></h3> 
         </div> 
     </div> 
  
