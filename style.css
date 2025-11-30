@@ -1,0 +1,169 @@
+/* Importamos la fuente de videojuego */ 
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'); 
+
+:root { 
+    --pixel-bg: #1a1a2e; 
+    --pixel-panel: #0f3460; 
+    --pixel-border: #30344c; 
+    --neon-blue: #00f3ff; 
+    --neon-orange: #ff9f43; 
+} 
+
+body { 
+    background: var(--pixel-bg); 
+    /* Un pequeño patrón de grilla para el fondo */ 
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), 
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); 
+    background-size: 20px 20px; 
+    color: white; 
+    /* Aplicamos la fuente retro a TODO */ 
+    font-family: 'Press Start 2P', cursive; 
+    text-align: center; 
+    padding: 20px; 
+    margin: 0; 
+    letter-spacing: -1px; /* La fuente es ancha, juntamos las letras */ 
+} 
+
+/* RESET GLOBAL PARA PIXEL ART: Todo cuadrado, sombras duras */ 
+* { 
+    border-radius: 0px !important; /* Chau curvas */ 
+    box-shadow: none !important; /* Reseteamos sombras suaves */ 
+    text-shadow: 3px 3px 0px #000000 !important; /* Sombra de texto dura */ 
+    transition: none !important; /* Los pixels no tienen transiciones suaves */ 
+} 
+
+h1 { font-size: 1.2em; margin-bottom: 15px; color: var(--neon-blue); } 
+h3 { font-size: 0.9em; margin: 15px 0; } 
+
+/* Paneles y Cajas: Bloques sólidos con sombra negra */ 
+.panel-control, .caja-total { 
+    background: var(--pixel-panel); 
+    padding: 20px; 
+    display: inline-block; 
+    border: 4px solid var(--pixel-border); 
+    /* Sombra dura desplazada */ 
+    box-shadow: 8px 8px 0px black !important; 
+    margin-bottom: 25px; 
+    width: 90%; 
+    max-width: 500px; 
+} 
+
+/* Inputs y Selects Pixelados */ 
+input, select { 
+    padding: 10px 5px; 
+    border: 3px solid var(--pixel-border); 
+    background-color: #1a1a2e; 
+    color: var(--neon-blue); 
+    width: 90%; 
+    margin-bottom: 15px; 
+    outline: none; 
+    font-size: 0.7em; /* Fuente más chica */ 
+    text-align: center; 
+    font-family: 'Press Start 2P', cursive; 
+} 
+
+input:focus, select:focus {  
+    border-color: var(--neon-blue); 
+    background-color: #000; 
+    /* Al hacer foco, la sombra dura cambia de color */ 
+    box-shadow: 4px 4px 0px var(--neon-blue) !important; 
+} 
+
+.btn-container { display: flex; justify-content: center; gap: 15px; margin-top: 15px; flex-wrap: wrap;} 
+
+/* Botones tipo Arcade */ 
+button { 
+    cursor: pointer; 
+    border: 3px solid #000; 
+    font-weight: bold; 
+    padding: 15px 10px; 
+    font-size: 0.6em; 
+    font-family: 'Press Start 2P', cursive; 
+    position: relative; 
+    /* Efecto de botón levantado */ 
+    top: -4px; left: -4px; 
+    box-shadow: 4px 4px 0px #000 !important; 
+} 
+
+/* Efecto al presionar el botón */ 
+button:active {  
+    top: 0px; left: 0px; 
+    box-shadow: 0px 0px 0px #000 !important; 
+} 
+
+.btn-add { background: var(--neon-blue); color: #000; text-shadow: none !important; } 
+.btn-empty { background: #ff0055; color: white; } 
+.btn-excel { background: #1D6F42; color: white; } 
+.btn-open { background: #6c5ce7; color: white; margin-left: 10px; } 
+.btn-whatsapp { background: #25D366; color: white; } 
+
+ul { list-style-type: none; padding: 0; max-width: 500px; margin: 0 auto; } 
+
+/* Items de la lista */ 
+li { 
+    background-color: var(--pixel-panel); 
+    margin: 15px 0; 
+    padding: 15px; 
+    border: 3px solid var(--pixel-border); 
+    /* Borde izquierdo grueso y pixelado */ 
+    border-left: 8px solid var(--neon-blue); 
+    box-shadow: 6px 6px 0px black !important; 
+    display: flex; justify-content: space-between; align-items: center; 
+    text-align: left; 
+    animation: aparecer 0.2s steps(5); /* Animación escalonada */ 
+} 
+ 
+li.mano-obra { border-left: 8px solid var(--neon-orange); } 
+
+.info-producto { display: flex; flex-direction: column; gap: 5px; } 
+.nombre-item { font-size: 0.8em; color: #fff; } 
+.detalle-item { font-size: 0.6em; color: #aaa; text-shadow: 1px 1px 0px #000 !important; } 
+ 
+/* Badges cuadraditos */ 
+.rubro-badge, .cantidad-badge { 
+    background: #000; border: 2px solid var(--neon-orange); color: var(--neon-orange); 
+    font-size: 0.5em; padding: 2px 4px; margin-left: 5px; text-shadow: none !important; 
+} 
+.cantidad-badge { border-color: var(--neon-blue); color: var(--neon-blue); margin-right: 5px; } 
+
+.acciones { display: flex; gap: 5px; } 
+
+.btn-delete, .btn-edit { 
+    width: auto; height: auto; padding: 5px 8px; font-size: 0.8em; 
+    top: -2px; left: -2px; box-shadow: 2px 2px 0px #000 !important; 
+} 
+.btn-delete { background: #ff4d4d; color: white; border-color: #000; } 
+.btn-edit { background: #ffcc00; color: black; border-color: #000; text-shadow: none !important;} 
+
+.caja-total { 
+    background: linear-gradient(45deg, #00b09b, #96c93d); 
+    /* En pixel art, los gradientes se ven raros, mejor color sólido */ 
+    background: #00b09b; 
+    border: 4px solid #fff; 
+} 
+ 
+.subtotales { 
+    font-size: 0.6em; margin-bottom: 15px; 
+    border-bottom: 3px dashed rgba(255,255,255,0.5); padding-bottom: 15px; 
+    text-align: left; 
+} 
+
+@keyframes aparecer { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+} 
+ 
+.titulo-seccion { 
+    text-align: left; max-width: 500px; margin: 30px auto 10px auto; 
+    font-size: 0.7em; color: var(--neon-blue); 
+    border-bottom: 4px solid var(--pixel-border); 
+    padding-bottom: 5px; 
+} 
+/* Ajustes para SweetAlert en modo pixel */ 
+div:where(.swal2-container) h2:where(.swal2-title), div:where(.swal2-container) div:where(.swal2-html-container) { 
+     font-family: 'Press Start 2P', cursive !important; text-shadow: none !important; letter-spacing: -1px; 
+} 
+div:where(.swal2-container) button:where(.swal2-styled) { 
+    border-radius: 0 !important; box-shadow: 4px 4px 0px #000 !important; font-family: 'Press Start 2P', cursive !important; 
+} 
