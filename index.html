@@ -211,8 +211,6 @@
         let baseDatos = JSON.parse(localStorage.getItem('CODEPOP_DB')) || [];
         let clienteActualIndex = null;
 
-        mostrarClientes();
-
         // --- GESTIÓN DE CLIENTES ---
 
         const crearNuevoCliente = () => {
@@ -463,6 +461,8 @@
             let textoCodificado = encodeURIComponent(texto);
             window.open(`https://wa.me/?text=${textoCodificado}`, '_blank');
         }
+
+        mostrarClientes();
         
         // TECLAS RÁPIDAS
          document.getElementById('nombreInput').addEventListener('keydown', function(e) {
@@ -474,6 +474,7 @@
         document.getElementById('precioInput').addEventListener('keydown', function(e) {
             if (e.key === "Enter") agregarProducto();
         });
+
 
     </script>
 </body>
