@@ -590,18 +590,75 @@ const compartirWhatsapp = () => {
     window.open(`https://wa.me/?text=${textoCodificado}`, '_blank'); 
 } 
 
-// --- BACKUP / RESTORE ---
+// --- BACKUP / RESTORE / DELETE ---
 
-const exportarBackup = () => {
-    const dataStr = JSON.stringify(baseDatos);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = 'codepop_backup_' + new Date().toISOString().slice(0,10) + '.json';
-    
-    let linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+const borrarTodo = () => {
+    Swal.fire({ 
+        title: '¿Estás seguro?', 
+        text: "Se eliminarán TODOS los proyectos. Esta acción es irreversible.", 
+        icon: 'warning', 
+        showCancelButton: true, 
+        confirmButtonColor: '#ef4444', 
+        cancelButtonColor: '#64748b', 
+        confirmButtonText: 'Sí, borrar todo', 
+        cancelButtonText: 'Cancelar' 
+    }).then((result) => { 
+        if (result.isConfirmed) { 
+            baseDatos = [];
+            guardarDB();
+            mostrarClientes();
+            Swal.fire({ icon: 'success', title: 'Eliminado', text: 'Se ha vaciado la bandeja de proyectos.' });
+        } 
+    }) 
+}
+
+const exportarBackup = async () => {
+    if (baseDatos.length === 0) {
+        Swal.fire({ icon: 'info', title: 'Vacío', text: 'No hay proyectos para exportar.' });
+        return;
+    }
+
+    // Generate checkboxes HTML
+    let htmlContent = '<div style="text-align: left; max-height: 300px; overflow-y: auto;">';
+    baseDatos.forEach((c, i) => {
+        htmlContent += `
+            <div style="margin-bottom: 5px;">
+                <input type="checkbox" id="chk_export_${i}" value="${i}" checked style="width: auto; margin-right: 5px;">
+                <label for="chk_export_${i}">${c.nombre} (${c.items.length} items)</label>
+            </div>
+        `;
+    });
+    htmlContent += '</div>';
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Seleccionar Proyectos',
+        html: htmlContent,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Exportar Seleccionados',
+        preConfirm: () => {
+            let selectedIndices = [];
+            baseDatos.forEach((_, i) => {
+                if (document.getElementById(`chk_export_${i}`).checked) {
+                    selectedIndices.push(i);
+                }
+            });
+            return selectedIndices;
+        }
+    });
+
+    if (formValues && formValues.length > 0) {
+        const selectedProjects = formValues.map(i => baseDatos[i]);
+        const dataStr = JSON.stringify(selectedProjects);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = 'codepop_proyectos_' + new Date().toISOString().slice(0,10) + '.json';
+        
+        let linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    }
 }
 
 const importarBackup = (input) => {
@@ -609,24 +666,64 @@ const importarBackup = (input) => {
     if (!file) return;
 
     let reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
         try {
             let importedData = JSON.parse(e.target.result);
-            if (Array.isArray(importedData)) {
-                baseDatos = importedData;
-                guardarDB();
-                mostrarClientes();
-                Swal.fire({ icon: 'success', title: 'Restaurado', text: 'Base de datos restaurada correctamente.' });
-            } else {
+            if (!Array.isArray(importedData)) {
                 throw new Error("Formato inválido");
             }
+
+            // Generate selection checklist for Restore
+            let htmlContent = '<div style="text-align: left; max-height: 300px; overflow-y: auto;">';
+            importedData.forEach((c, i) => {
+                htmlContent += `
+                    <div style="margin-bottom: 5px;">
+                        <input type="checkbox" id="chk_import_${i}" value="${i}" checked style="width: auto; margin-right: 5px;">
+                        <label for="chk_import_${i}">${c.nombre} (${c.items ? c.items.length : 0} items)</label>
+                    </div>
+                `;
+            });
+            htmlContent += '</div>';
+
+            const { value: selectedIndices } = await Swal.fire({
+                title: 'Restaurar Proyectos',
+                html: htmlContent,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Importar Seleccionados',
+                preConfirm: () => {
+                    let indices = [];
+                    importedData.forEach((_, i) => {
+                        if (document.getElementById(`chk_import_${i}`).checked) {
+                            indices.push(i);
+                        }
+                    });
+                    return indices;
+                }
+            });
+
+            if (selectedIndices && selectedIndices.length > 0) {
+                let count = 0;
+                selectedIndices.forEach(i => {
+                    let proj = importedData[i];
+                    // Generate a new ID to avoid collisions
+                    proj.id = Date.now() + Math.random(); 
+                    baseDatos.push(proj);
+                    count++;
+                });
+                
+                guardarDB();
+                mostrarClientes();
+                Swal.fire({ icon: 'success', title: 'Restaurado', text: `${count} proyectos importados correctamente.` });
+            }
+
         } catch (error) {
             Swal.fire({ icon: 'error', title: 'Error', text: 'El archivo no es válido.' });
         }
+        // Reset input
+        input.value = ''; 
     };
     reader.readAsText(file);
-    // Reset input so the same file can be selected again if needed
-    input.value = ''; 
 }
  
 // --- INICIALIZACIÓN Y EVENTOS --- 
