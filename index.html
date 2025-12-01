@@ -43,13 +43,14 @@
             </div>
         </div> 
 
-        <div style="text-align: right; max-width: 600px; margin: 0 auto; margin-bottom: 10px;">
-            <button class="btn-secondary" onclick="exportarBackup()">Exportar Backup</button>
-            <input type="file" id="fileInput" style="display:none" onchange="importarBackup(this)">
-            <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">Restaurar Backup</button>
-        </div>
- 
         <ul id="listaClientesVisual"></ul> 
+
+        <div style="text-align: right; max-width: 600px; margin: 0 auto; margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn-delete btn-sm" onclick="borrarTodo()">Borrar Todo</button>
+            <button class="btn-secondary btn-sm" onclick="exportarBackup()">Exportar Proyectos</button>
+            <input type="file" id="fileInput" style="display:none" onchange="importarBackup(this)">
+            <button class="btn-secondary btn-sm" onclick="document.getElementById('fileInput').click()">Restaurar Proyectos</button>
+        </div>
     </div> 
  
  
