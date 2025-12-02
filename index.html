@@ -21,7 +21,10 @@
 <body> 
  
     <div id="vista-clientes"> 
-        <h1>Gestión de Proyectos</h1> 
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto 2rem auto;">
+            <h1 style="margin: 0;">Gestión de Proyectos</h1>
+            <button id="themeToggle" class="btn-secondary btn-sm" onclick="toggleTheme()">🌙</button>
+        </div>
          
         <div class="panel-control"> 
             <input type="text" id="nuevoClienteInput" placeholder="Nombre del Cliente / Proyecto"> 
@@ -45,11 +48,17 @@
 
         <ul id="listaClientesVisual"></ul> 
 
-        <div style="text-align: right; max-width: 600px; margin: 0 auto; margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="btn-delete btn-sm" onclick="borrarTodo()">Borrar Todo</button>
-            <button class="btn-secondary btn-sm" onclick="exportarBackup()">Exportar Proyectos</button>
-            <input type="file" id="fileInput" style="display:none" onchange="importarBackup(this)">
-            <button class="btn-secondary btn-sm" onclick="document.getElementById('fileInput').click()">Restaurar Proyectos</button>
+        <div style="text-align: right; max-width: 600px; margin: 0 auto; margin-top: 20px; display: flex; justify-content: space-between; gap: 10px;">
+            <div>
+                <input type="file" id="logoInput" style="display:none" onchange="guardarLogo(this)">
+                <button class="btn-secondary btn-sm" onclick="document.getElementById('logoInput').click()">Subir Logo</button>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-delete btn-sm" onclick="borrarTodo()">Borrar Todo</button>
+                <button class="btn-secondary btn-sm" onclick="exportarBackup()">Exportar Proyectos</button>
+                <input type="file" id="fileInput" style="display:none" onchange="importarBackup(this)">
+                <button class="btn-secondary btn-sm" onclick="document.getElementById('fileInput').click()">Restaurar Proyectos</button>
+            </div>
         </div>
     </div> 
  
