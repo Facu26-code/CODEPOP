@@ -17,6 +17,17 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
+[data-theme="dark"] {
+    --bg-color: #0f172a; /* Slate 900 */
+    --panel-bg: #1e293b; /* Slate 800 */
+    --text-primary: #f8fafc; /* Slate 50 */
+    --text-secondary: #94a3b8; /* Slate 400 */
+    --border-color: #334155; /* Slate 700 */
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-primary);
@@ -278,4 +289,18 @@ li:hover {
 #buscadorInput {
     margin-bottom: 0;
     background-color: #f8fafc;
+}
+
+/* Validation Error */
+.input-error {
+    border-color: var(--danger-color) !important;
+    animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
 }
