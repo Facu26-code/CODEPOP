@@ -23,7 +23,10 @@
     <div id="vista-clientes"> 
         <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto 2rem auto;">
             <h1 style="margin: 0;">Gestión de Proyectos</h1>
-            <button id="themeToggle" class="btn-secondary btn-sm" onclick="toggleTheme()">🌙</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-secondary btn-sm" onclick="abrirGestorPrecios()">💰 Precios</button>
+                <button id="themeToggle" class="btn-secondary btn-sm" onclick="toggleTheme()">🌙</button>
+            </div>
         </div>
          
         <div class="panel-control"> 
@@ -63,6 +66,42 @@
     </div> 
  
  
+    <!-- VISTA GESTOR PRECIOS -->
+    <div id="vista-gestion-precios" style="display:none;">
+        <div style="text-align: left; max-width: 600px; margin: 0 auto; margin-bottom: 20px;">
+            <button class="btn-secondary" onclick="volverInicio()">◀ Volver</button>
+        </div>
+
+        <h1>Gestor de Precios</h1>
+
+        <div class="panel-control">
+            <h3>Agregar Nuevo Item</h3>
+            <select id="nuevoPrecioTipo">
+                <option value="material">Material</option>
+                <option value="mano_obra">Mano de Obra</option>
+            </select>
+            
+            <div id="rubroSelectorContainer" style="display:none;">
+                <select id="nuevoPrecioRubro">
+                    <option value="Electricidad">Electricidad</option>
+                    <option value="Mecánica">Mecánica</option>
+                    <option value="Gestoría">Gestoría</option>
+                    <option value="Gasista">Gasista</option>
+                    <option value="Varios">Varios</option>
+                </select>
+            </div>
+
+            <input type="text" id="nuevoPrecioNombre" placeholder="Descripción (Ej: Cable 2.5mm)">
+            <input type="number" id="nuevoPrecioValor" placeholder="$ Precio Base" min="0">
+            
+            <div class="btn-container">
+                <button class="btn-add" onclick="agregarPrecioItem()">Guardar Precio</button>
+            </div>
+        </div>
+
+        <div id="listaPreciosContainer"></div>
+    </div>
+
     <div id="vista-presupuesto" style="display:none;"> 
          
         <div style="text-align: left; max-width: 600px; margin: 0 auto; margin-bottom: 20px;"> 
