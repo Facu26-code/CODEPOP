@@ -15,6 +15,10 @@
     
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    
+    --input-bg: #ffffff;
+    --btn-secondary-bg: #ffffff;
+    --btn-secondary-border: #e2e8f0;
 }
 
 [data-theme="dark"] {
@@ -26,6 +30,10 @@
     
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+    
+    --input-bg: #1e293b;
+    --btn-secondary-bg: #1e293b;
+    --btn-secondary-border: #334155;
 }
 
 body {
@@ -74,7 +82,7 @@ input, select {
     font-size: 0.95rem;
     font-family: inherit;
     color: var(--text-primary);
-    background-color: #fff;
+    background-color: var(--input-bg);
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
 }
@@ -123,13 +131,13 @@ button:active {
 .btn-add:hover { background-color: var(--primary-hover); }
 
 .btn-secondary, .btn-empty, .btn-excel, .btn-open {
-    background-color: white;
+    background-color: var(--btn-secondary-bg);
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--btn-secondary-border);
 }
 .btn-secondary:hover, .btn-empty:hover, .btn-excel:hover, .btn-open:hover {
-    background-color: var(--bg-color);
-    border-color: #cbd5e1;
+    filter: brightness(95%);
+    border-color: var(--primary-color);
 }
 
 .btn-whatsapp {
