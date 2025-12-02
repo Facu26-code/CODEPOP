@@ -302,6 +302,9 @@ const agregarProducto = () => {
     let prec = parseFloat(precio);
 
     if (cant <= 0 || prec < 0) {
+        if(cant <= 0) document.getElementById('cantidadInput').classList.add('input-error');
+        if(prec < 0) document.getElementById('precioInput').classList.add('input-error');
+        
         Swal.fire({ 
             title: 'Datos inválidos', 
             text: "Cantidad y precio deben ser positivos.", 
@@ -509,7 +512,13 @@ const descargarPDF = () => {
     doc.setTextColor(40, 40, 40);
     
     // Encabezado
-    doc.text("PRESUPUESTO", 105, 20, null, null, "center");
+    // Logo
+    let logoData = localStorage.getItem('CODEPOP_LOGO');
+    if(logoData) {
+        doc.addImage(logoData, 'PNG', 20, 10, 30, 30);
+    }
+
+    doc.text("PRESUPUESTO", 105, 25, null, null, "center");
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
@@ -618,28 +627,40 @@ const exportarBackup = async () => {
         return;
     }
 
-    // Generate checkboxes HTML
-    let htmlContent = '<div style="text-align: left; max-height: 300px; overflow-y: auto;">';
-    baseDatos.forEach((c, i) => {
-        htmlContent += `
-            <div style="margin-bottom: 5px;">
-                <input type="checkbox" id="chk_export_${i}" value="${i}" checked style="width: auto; margin-right: 5px;">
-                <label for="chk_export_${i}">${c.nombre} (${c.items.length} items)</label>
-            </div>
-        `;
-    });
-    htmlContent += '</div>';
-
     const { value: formValues } = await Swal.fire({
         title: 'Seleccionar Proyectos',
-        html: htmlContent,
+        html: '<div id="swal-export-list" style="text-align: left; max-height: 300px; overflow-y: auto;"></div>',
+        didOpen: () => {
+            const container = document.getElementById('swal-export-list');
+            baseDatos.forEach((c, i) => {
+                const div = document.createElement('div');
+                div.style.marginBottom = '5px';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `chk_export_${i}`;
+                checkbox.value = i;
+                checkbox.checked = true;
+                checkbox.style.width = 'auto';
+                checkbox.style.marginRight = '5px';
+                
+                const label = document.createElement('label');
+                label.htmlFor = `chk_export_${i}`;
+                label.textContent = `${c.nombre} (${c.items.length} items)`;
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        },
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonText: 'Exportar Seleccionados',
         preConfirm: () => {
             let selectedIndices = [];
             baseDatos.forEach((_, i) => {
-                if (document.getElementById(`chk_export_${i}`).checked) {
+                const checkbox = document.getElementById(`chk_export_${i}`);
+                if (checkbox && checkbox.checked) {
                     selectedIndices.push(i);
                 }
             });
@@ -649,15 +670,18 @@ const exportarBackup = async () => {
 
     if (formValues && formValues.length > 0) {
         const selectedProjects = formValues.map(i => baseDatos[i]);
-        const dataStr = JSON.stringify(selectedProjects);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const dataStr = JSON.stringify(selectedProjects, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
         
         const exportFileDefaultName = 'codepop_proyectos_' + new Date().toISOString().slice(0,10) + '.json';
         
         let linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.href = url;
+        linkElement.download = exportFileDefaultName;
         linkElement.click();
+        
+        URL.revokeObjectURL(url);
     }
 }
 
@@ -673,28 +697,41 @@ const importarBackup = (input) => {
                 throw new Error("Formato inválido");
             }
 
-            // Generate selection checklist for Restore
-            let htmlContent = '<div style="text-align: left; max-height: 300px; overflow-y: auto;">';
-            importedData.forEach((c, i) => {
-                htmlContent += `
-                    <div style="margin-bottom: 5px;">
-                        <input type="checkbox" id="chk_import_${i}" value="${i}" checked style="width: auto; margin-right: 5px;">
-                        <label for="chk_import_${i}">${c.nombre} (${c.items ? c.items.length : 0} items)</label>
-                    </div>
-                `;
-            });
-            htmlContent += '</div>';
-
             const { value: selectedIndices } = await Swal.fire({
                 title: 'Restaurar Proyectos',
-                html: htmlContent,
+                html: '<div id="swal-import-list" style="text-align: left; max-height: 300px; overflow-y: auto;"></div>',
+                didOpen: () => {
+                    const container = document.getElementById('swal-import-list');
+                    importedData.forEach((c, i) => {
+                        const div = document.createElement('div');
+                        div.style.marginBottom = '5px';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `chk_import_${i}`;
+                        checkbox.value = i;
+                        checkbox.checked = true;
+                        checkbox.style.width = 'auto';
+                        checkbox.style.marginRight = '5px';
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `chk_import_${i}`;
+                        // Safe text insertion
+                        label.textContent = `${c.nombre} (${c.items ? c.items.length : 0} items)`;
+                        
+                        div.appendChild(checkbox);
+                        div.appendChild(label);
+                        container.appendChild(div);
+                    });
+                },
                 focusConfirm: false,
                 showCancelButton: true,
                 confirmButtonText: 'Importar Seleccionados',
                 preConfirm: () => {
                     let indices = [];
                     importedData.forEach((_, i) => {
-                        if (document.getElementById(`chk_import_${i}`).checked) {
+                        const checkbox = document.getElementById(`chk_import_${i}`);
+                        if (checkbox && checkbox.checked) {
                             indices.push(i);
                         }
                     });
@@ -725,9 +762,48 @@ const importarBackup = (input) => {
     };
     reader.readAsText(file);
 }
+
+// --- LOGO ---
+
+const guardarLogo = (input) => {
+    let file = input.files[0];
+    if (!file) return;
+
+    let reader = new FileReader();
+    reader.onload = (e) => {
+        localStorage.setItem('CODEPOP_LOGO', e.target.result);
+        Swal.fire({ icon: 'success', title: 'Logo Guardado', text: 'El logo se usará en los PDFs.' });
+    };
+    reader.readAsDataURL(file);
+}
  
+// --- DARK MODE ---
+
+const toggleTheme = () => {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('CODEPOP_THEME', newTheme);
+    
+    updateThemeIcon(newTheme);
+}
+
+const updateThemeIcon = (theme) => {
+    const btn = document.getElementById('themeToggle');
+    if(btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+const initTheme = () => {
+    const savedTheme = localStorage.getItem('CODEPOP_THEME') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
 // --- INICIALIZACIÓN Y EVENTOS --- 
- 
+
+initTheme();
 mostrarClientes(); 
 
 document.getElementById('tipoItemInput').addEventListener('change', cambiarPlaceholders); 
@@ -738,8 +814,10 @@ document.getElementById('nombreInput').addEventListener('input', autocompletarPr
     if (e.key === "Enter") { e.preventDefault(); document.getElementById('cantidadInput').focus(); } 
 }); 
 document.getElementById('cantidadInput').addEventListener('keydown', (e) => { 
+    document.getElementById('cantidadInput').classList.remove('input-error');
     if (e.key === "Enter") { e.preventDefault(); document.getElementById('precioInput').focus(); } 
 }); 
 document.getElementById('precioInput').addEventListener('keydown', (e) => { 
+    document.getElementById('precioInput').classList.remove('input-error');
     if (e.key === "Enter") agregarProducto(); 
 }); 
