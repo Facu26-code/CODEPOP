@@ -2,7 +2,7 @@ let baseDatos = JSON.parse(localStorage.getItem('CODEPOP_DB')) || [];
 let clienteActualIndex = null; 
 
 // --- BASE DE PRECIOS DE MERCADO --- 
-const PRECIOS_MERCADO = { 
+const PRECIOS_DEFAULT = { 
     "material": [ 
         { nombre: "Cable 2.5mm (Rollo)", precio: 45000 }, 
         { nombre: "Cable 1.5mm (Rollo)", precio: 38000 }, 
@@ -12,37 +12,38 @@ const PRECIOS_MERCADO = {
         { nombre: "Filtro de Aire", precio: 8000 }, 
         { nombre: "Formularios Tipo 08", precio: 5000 } 
     ], 
-    // LISTA DE MANO DE OBRA ACTUALIZADA 
     "mano_obra": { 
-        "⚡ Electricidad": [ 
+        "Electricidad": [ 
             { nombre: "Boca de luz (Instalación)", precio: 15000 }, 
             { nombre: "Cambio de Térmica", precio: 25000 }, 
             { nombre: "Urgencia 24hs", precio: 40000 } 
         ], 
-        "🔧 Mecánica": [ 
+        "Mecánica": [ 
             { nombre: "Electricidad Automotriz", precio: 25000 }, 
             { nombre: "Escaneo Computarizado", precio: 20000 }, 
             { nombre: "Mecánica Integral", precio: 30000 }, 
             { nombre: "Cambio de Aceite", precio: 10000 } 
         ], 
-        "📋 Gestor Automotor": [ 
+        "Gestoría": [ 
             { nombre: "Transferencia Automotor", precio: 50000 }, 
             { nombre: "Cambio de Dominio", precio: 40000 }, 
             { nombre: "Cédula Azul/Verde", precio: 15000 }, 
             { nombre: "Informe de Dominio", precio: 10000 } 
         ], 
-        "🔥 Gasista": [ 
+        "Gasista": [ 
             { nombre: "Instalación Estufa", precio: 35000 }, 
             { nombre: "Búsqueda de Fuga", precio: 40000 }, 
             { nombre: "Matriculación", precio: 60000 } 
         ], 
-        "🛠️ Varios": [ 
+        "Varios": [ 
             { nombre: "Trabajos de Oficina", precio: 10000 }, 
             { nombre: "Finanzas / Contador", precio: 20000 }, 
             { nombre: "Trámites Generales", precio: 8000 } 
         ] 
     } 
-}; 
+};
+
+let basePrecios = JSON.parse(localStorage.getItem('CODEPOP_PRECIOS')) || PRECIOS_DEFAULT;
 
 // --- GESTIÓN DE CLIENTES --- 
 
@@ -211,10 +212,124 @@ const abrirPresupuesto = (index) => {
 
 const volverInicio = () => { 
     clienteActualIndex = null;  
-    document.getElementById('vista-presupuesto').style.display = 'none'; 
+    document.getElementById('vista-presupuesto').style.display = 'none';
+    document.getElementById('vista-gestion-precios').style.display = 'none'; 
     document.getElementById('vista-clientes').style.display = 'block'; 
     mostrarClientes();  
 } 
+
+// --- GESTOR DE PRECIOS ---
+
+const abrirGestorPrecios = () => {
+    document.getElementById('vista-clientes').style.display = 'none';
+    document.getElementById('vista-gestion-precios').style.display = 'block';
+    
+    // Setup event listener for type change
+    document.getElementById('nuevoPrecioTipo').onchange = (e) => {
+        const rubroContainer = document.getElementById('rubroSelectorContainer');
+        rubroContainer.style.display = e.target.value === 'mano_obra' ? 'block' : 'none';
+    };
+    
+    renderTablaPrecios();
+}
+
+const renderTablaPrecios = () => {
+    const container = document.getElementById('listaPreciosContainer');
+    container.innerHTML = "";
+    
+    // Render Materials
+    let html = '<div class="titulo-seccion">Materiales</div><ul>';
+    basePrecios.material.forEach((item, index) => {
+        html += createPriceListItem(item.nombre, item.precio, 'material', index);
+    });
+    html += '</ul>';
+    
+    // Render Labor by Category
+    for (const [rubro, items] of Object.entries(basePrecios.mano_obra)) {
+        html += `<div class="titulo-seccion">${rubro}</div><ul>`;
+        items.forEach((item, index) => {
+            html += createPriceListItem(item.nombre, item.precio, 'mano_obra', index, rubro);
+        });
+        html += '</ul>';
+    }
+    
+    container.innerHTML = html;
+}
+
+const createPriceListItem = (nombre, precio, type, index, rubro = null) => {
+    // We construct HTML string here but careful with XSS if name is malicious.
+    // However, since this is a management view and we want to use innerHTML for the big list structure efficiently...
+    // Let's allow it but we should ideally sanitize `nombre`.
+    // For consistency with previous fixes, let's build elements or sanitize.
+    // Given the complexity of building nested ULs with innerHTML vs createElement, I'll sanitize the name.
+    const safeName = nombre.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const rubroAttr = rubro ? `data-rubro="${rubro}"` : '';
+    
+    return `
+        <li>
+            <div class="info-producto">
+                <span class="nombre-item">${safeName}</span>
+                <span class="detalle-item">$${precio.toLocaleString()}</span>
+            </div>
+            <div class="acciones">
+                <button class="btn-delete" onclick="eliminarPrecioItem('${type}', ${index}, '${rubro || ''}')">X</button>
+            </div>
+        </li>
+    `;
+}
+
+const agregarPrecioItem = () => {
+    const tipo = document.getElementById('nuevoPrecioTipo').value;
+    const rubro = document.getElementById('nuevoPrecioRubro').value;
+    const nombre = document.getElementById('nuevoPrecioNombre').value;
+    const valor = parseFloat(document.getElementById('nuevoPrecioValor').value);
+    
+    if(!nombre || valor < 0 || isNaN(valor)) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Nombre y precio válidos requeridos.' });
+        return;
+    }
+    
+    const newItem = { nombre, precio: valor };
+    
+    if (tipo === 'material') {
+        basePrecios.material.push(newItem);
+    } else {
+        if (!basePrecios.mano_obra[rubro]) basePrecios.mano_obra[rubro] = [];
+        basePrecios.mano_obra[rubro].push(newItem);
+    }
+    
+    guardarPreciosDB();
+    renderTablaPrecios();
+    
+    document.getElementById('nuevoPrecioNombre').value = '';
+    document.getElementById('nuevoPrecioValor').value = '';
+    
+    Swal.fire({ icon: 'success', title: 'Agregado', timer: 1000, showConfirmButton: false });
+}
+
+const eliminarPrecioItem = (type, index, rubro) => {
+    Swal.fire({ 
+        title: '¿Eliminar?', 
+        icon: 'warning', 
+        showCancelButton: true, 
+        confirmButtonColor: '#ef4444', 
+        confirmButtonText: 'Sí' 
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if (type === 'material') {
+                basePrecios.material.splice(index, 1);
+            } else {
+                basePrecios.mano_obra[rubro].splice(index, 1);
+            }
+            guardarPreciosDB();
+            renderTablaPrecios();
+        }
+    });
+}
+
+const guardarPreciosDB = () => {
+    localStorage.setItem('CODEPOP_PRECIOS', JSON.stringify(basePrecios));
+}
 
 // --- LÓGICA INTELIGENTE DE PRECIOS Y VISIBILIDAD --- 
 
@@ -251,9 +366,9 @@ const actualizarSugerencias = () => {
     let opciones = []; 
 
     if (tipo === 'material') { 
-        opciones = PRECIOS_MERCADO.material; 
+        opciones = basePrecios.material; 
     } else { 
-        opciones = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"]; 
+        opciones = basePrecios.mano_obra[rubro] || basePrecios.mano_obra["Varios"]; 
     } 
 
     if (opciones) { 
@@ -274,9 +389,9 @@ const autocompletarPrecio = () => {
 
     let listaItems = []; 
     if (tipo === 'material') { 
-        listaItems = PRECIOS_MERCADO.material; 
+        listaItems = basePrecios.material; 
     } else { 
-        listaItems = PRECIOS_MERCADO.mano_obra[rubro] || PRECIOS_MERCADO.mano_obra["🛠️ Varios"]; 
+        listaItems = basePrecios.mano_obra[rubro] || basePrecios.mano_obra["Varios"]; 
     } 
 
     let encontrado = listaItems.find(item => item.nombre === nombreIngresado); 
